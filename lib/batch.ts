@@ -65,4 +65,20 @@ export function categorySlug(name: string) {
   return name.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+export type CategorySummary = { name: string; slug: string; image: string; count: number };
+
+export function summarizeCategories(batches: Batch[]): CategorySummary[] {
+  const map = new Map<string, CategorySummary>();
+  batches.forEach((batch) => {
+    const entry = map.get(batch.category);
+    if (entry) {
+      entry.count += 1;
+      entry.image ||= batch.image;
+    } else {
+      map.set(batch.category, { name: batch.category, slug: categorySlug(batch.category), image: batch.image, count: 1 });
+    }
+  });
+  return [...map.values()];
+}
+
 export const percentOf = (batch: Pick<Batch, "current" | "minimum">) => Math.min(100, Math.round((batch.current / batch.minimum) * 100));
