@@ -1,15 +1,27 @@
-import { daysLeft, formatQuantity, resolveTiers, rupiah } from "@/lib/batch";
-import { demoBatches } from "@/lib/demo-data";
+import { daysLeft, formatQuantity, resolveTiers, rupiah, type Batch } from "@/lib/batch";
+import { listOpenBatches } from "@/lib/orders";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  let batches: Batch[] = [];
+  let loadError = "";
+  try {
+    batches = await listOpenBatches();
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Daftar batch tidak dapat dimuat.";
+  }
+
   return <main>
     <section className="band">
       <div className="section">
         <div className="section-head">
           <div><span className="eyebrow">Patungan</span><h2>Batch <em>minggu ini</em></h2></div>
         </div>
+        {loadError && <p className="form-error">{loadError}</p>}
+        {!loadError && batches.length === 0 && <div className="empty-state"><h3>Belum ada batch terbuka</h3><p>Batch baru dibuka setiap awal minggu. Coba lagi nanti.</p></div>}
         <div className="product-grid">
-          {demoBatches.map((batch) => {
+          {batches.map((batch) => {
             const { current, next } = resolveTiers(batch);
             const percent = Math.min(100, Math.round((batch.current / batch.minimum) * 100));
             return <article key={batch.id} className="product-card">
