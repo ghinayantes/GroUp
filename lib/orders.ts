@@ -12,6 +12,7 @@ export const normalizePhone = (phone: string) => phone.replace(/[\s()-]/g, "");
 export type OrderChannel = "website" | "whatsapp";
 
 export const BATCH_CLOSED_MESSAGE = "Batch ini sudah ditutup. Pesanan tidak dapat dibuat atau diubah.";
+export const ORDER_NOT_FOUND_MESSAGE = "Pesanan tidak ditemukan. Periksa kode pengelolaan.";
 export const INVALID_QUANTITY_MESSAGE = "Jumlah harus lebih dari nol dan maksimal 100.000.";
 
 export type CreateOrderInput = {
@@ -117,7 +118,8 @@ export async function getOpenBatch(id: string) {
 
 function rpcMessage(message: string, fallback: string) {
   if (message.includes("batch_closed")) return BATCH_CLOSED_MESSAGE;
-  if (message.includes("invalid_order")) return INVALID_QUANTITY_MESSAGE;
+  if (message.includes("order_not_found")) return ORDER_NOT_FOUND_MESSAGE;
+  if (message.includes("invalid_order") || message.includes("invalid_action")) return INVALID_QUANTITY_MESSAGE;
   return fallback;
 }
 
@@ -143,4 +145,74 @@ export async function createOrder(input: CreateOrderInput) {
   });
   if (error) throw new Error(rpcMessage(error.message, "Pesanan belum dapat dicatat. Coba lagi."));
   return { id: data as string, managementCode: code };
+}
+
+export type ManagedOrder = {
+  id: string;
+  customerName: string;
+  quantity: number;
+  status: "confirmed" | "cancelled";
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  finalUnitPrice: number | null;
+  createdAt: string;
+  batch: Batch;
+  editable: boolean;
+};
+
+async function toManagedOrder(row: { id: string; patungan_id: string; customer_name: string; quantity: number | string; status: string; payment_status: string; fulfillment_status: string; final_unit_price: number | string | null; created_at: string }): Promise<ManagedOrder | null> {
+  const batch = await getBatch(row.patungan_id);
+  if (!batch) return null;
+  const status = row.status as ManagedOrder["status"];
+  return {
+    id: row.id,
+    customerName: row.customer_name,
+    quantity: Number(row.quantity),
+    status,
+    paymentStatus: row.payment_status,
+    fulfillmentStatus: row.fulfillment_status,
+    finalUnitPrice: row.final_unit_price === null ? null : Number(row.final_unit_price),
+    createdAt: row.created_at,
+    batch,
+    editable: status === "confirmed" && batch.acceptingOrders,
+  };
+}
+
+const orderColumns = "id, patungan_id, customer_name, quantity, status, payment_status, fulfillment_status, final_unit_price, created_at";
+
+/** Mencari pesanan website dari kode pengelolaan. Kode salah tidak mengungkap apa pun. */
+export async function findOrderByCode(code: string): Promise<ManagedOrder | null> {
+  if (!hasSupabaseSecret()) throw new Error("Pengelolaan pesanan belum aktif. Lengkapi konfigurasi Supabase.");
+  if (code.trim().length < 16) return null;
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.from("orders").select(orderColumns)
+    .eq("channel", "website").eq("management_code_hash", hashCode(code)).maybeSingle();
+  if (error) throw new Error("Pesanan tidak dapat dimuat.");
+  return data ? toManagedOrder(data) : null;
+}
+
+export async function updateOrderByCode(code: string, quantity: number) {
+  if (!isValidQuantity(quantity)) throw new Error(INVALID_QUANTITY_MESSAGE);
+  const order = await findOrderByCode(code);
+  if (!order) throw new Error(ORDER_NOT_FOUND_MESSAGE);
+  await manageOrder(order.id, null, code, "update", quantity);
+}
+
+export async function cancelOrderByCode(code: string) {
+  const order = await findOrderByCode(code);
+  if (!order) throw new Error(ORDER_NOT_FOUND_MESSAGE);
+  await manageOrder(order.id, null, code, "cancel", null);
+}
+
+/** Validasi jumlah dilakukan RPC setelah cek kepemilikan dan status batch. */
+export async function manageOrder(id: string, phone: string | null, code: string | null, action: "update" | "cancel", quantity: number | null) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.rpc("manage_group_order", {
+    p_order_id: id,
+    p_phone: phone ? normalizePhone(phone) : null,
+    p_management_code_hash: code ? hashCode(code) : null,
+    p_action: action,
+    p_quantity: quantity,
+  });
+  if (error) throw new Error(rpcMessage(error.message, action === "update" ? "Pesanan tidak dapat diubah." : "Pesanan tidak dapat dibatalkan."));
 }
