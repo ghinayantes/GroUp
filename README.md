@@ -36,8 +36,14 @@ Integrasi pembayaran dan logistik belum disiapkan.
 
 ## Halaman pembeli
 
-- `/` — batch minggu ini dengan progres kuota dan harga bertingkat.
-- `/patungan/<id>` — detail batch: tier harga, aturan pembayaran/penyerahan, dan form pesanan.
+Semua halaman publik berada di `app/(site)/` dan memakai header (pencarian + kategori) serta footer yang sama.
+
+- `/` — beranda: hero, kategori, banner informasi, batch minggu ini, hitung mundur batch terdekat.
+- `/patungan` — katalog semua batch terbuka dengan pencarian, filter (kategori, hampir capai kuota, tutup ≤ 3 hari, supplier terverifikasi), dan urutan. Filter tersimpan di URL, misalnya `/patungan?kategori=sayuran&sort=progres`.
+- `/patungan/<id>` — detail batch: tier harga, aturan pembayaran/penyerahan, riwayat batch selesai supplier, dan form pesanan.
+- `/kategori` dan `/kategori/<slug>` — daftar kategori dan katalog per kategori.
+- `/cara-kerja` — alur patungan, simulasi harga bertingkat, perintah WhatsApp, dan FAQ.
+- `/supplier` — informasi dan pendaftaran mitra supplier lewat email.
 - `/pesanan` — ubah jumlah atau batalkan pesanan website memakai kode pengelolaan yang ditampilkan sekali saat pesanan dibuat.
 
 ## Aturan MVP
