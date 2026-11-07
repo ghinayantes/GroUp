@@ -1,10 +1,27 @@
 import "server-only";
-import { type Batch, type BatchStatus } from "@/lib/batch";
+import { createHash, randomBytes } from "node:crypto";
+import { isValidQuantity, type Batch, type BatchStatus } from "@/lib/batch";
 import { demoBatches } from "@/lib/demo-data";
 import { createSupabaseAdminClient, hasSupabaseSecret } from "@/lib/supabase/server";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: string) => uuidPattern.test(value);
+const hashCode = (value: string) => createHash("sha256").update(value.trim()).digest("hex");
+export const normalizePhone = (phone: string) => phone.replace(/[\s()-]/g, "");
+
+export type OrderChannel = "website" | "whatsapp";
+
+export const BATCH_CLOSED_MESSAGE = "Batch ini sudah ditutup. Pesanan tidak dapat dibuat atau diubah.";
+export const INVALID_QUANTITY_MESSAGE = "Jumlah harus lebih dari nol dan maksimal 100.000.";
+
+export type CreateOrderInput = {
+  groupId: string;
+  customerName: string;
+  phone: string;
+  quantity: number;
+  channel?: OrderChannel;
+  providerMessageId?: string;
+};
 
 type BatchRow = {
   id: string;
@@ -96,4 +113,34 @@ export async function getBatch(id: string): Promise<Batch | null> {
 export async function getOpenBatch(id: string) {
   const batch = await getBatch(id);
   return batch?.acceptingOrders ? batch : null;
+}
+
+function rpcMessage(message: string, fallback: string) {
+  if (message.includes("batch_closed")) return BATCH_CLOSED_MESSAGE;
+  if (message.includes("invalid_order")) return INVALID_QUANTITY_MESSAGE;
+  return fallback;
+}
+
+export async function createOrder(input: CreateOrderInput) {
+  const name = input.customerName.trim();
+  if (name.length < 2 || name.length > 120 || !/^\+?[\d\s()-]{8,20}$/.test(input.phone) || !isValidQuantity(input.quantity)) {
+    throw new Error("Periksa nama, nomor WhatsApp, dan jumlah pesanan (maksimal 100.000, hingga 3 desimal).");
+  }
+  if (!hasSupabaseSecret()) throw new Error("Pemesanan belum aktif. Lengkapi konfigurasi Supabase di .env.local.");
+  if (!isUuid(input.groupId)) throw new Error("Batch tidak ditemukan.");
+
+  const channel = input.channel ?? "website";
+  const code = channel === "website" ? randomBytes(18).toString("base64url") : null;
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.rpc("create_group_order", {
+    p_patungan_id: input.groupId,
+    p_customer_name: name,
+    p_phone: normalizePhone(input.phone),
+    p_quantity: input.quantity,
+    p_channel: channel,
+    p_management_code_hash: code ? hashCode(code) : null,
+    p_provider_message_id: input.providerMessageId ?? null,
+  });
+  if (error) throw new Error(rpcMessage(error.message, "Pesanan belum dapat dicatat. Coba lagi."));
+  return { id: data as string, managementCode: code };
 }
