@@ -49,3 +49,5 @@ export function daysLeft(closesAt: string, now = Date.now()) {
 export function isValidQuantity(quantity: number) {
   return Number.isFinite(quantity) && quantity > 0 && quantity <= MAX_ORDER_QUANTITY && Math.round(quantity * 1000) === quantity * 1000;
 }
+
+export const percentOf = (batch: Pick<Batch, "current" | "minimum">) => Math.min(100, Math.round((batch.current / batch.minimum) * 100));
