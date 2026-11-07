@@ -11,6 +11,7 @@ import type { CategorySummary } from "@/lib/batch";
 const links = [
   { href: "/", label: "Beranda" },
   { href: "/patungan", label: "Patungan" },
+  { href: "/kategori", label: "Kategori" },
   { href: "/pesanan", label: "Kelola pesanan" },
 ];
 
