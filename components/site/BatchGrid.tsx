@@ -50,3 +50,15 @@ export default function BatchGrid({ batches, whatsappNumber, columns = 4 }: { ba
   </>;
 }
 
+/** Tombol pembuka dialog untuk satu batch (dipakai di banner hitung mundur). */
+export function JoinButton({ batch, whatsappNumber, label }: { batch: Batch; whatsappNumber?: string; label: string }) {
+  const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
+  return <>
+    <button className="button button-dark" onClick={() => setOpen(true)}>{label} <Icon name="arrow" size={16} /></button>
+    {open && <Modal onClose={close} labelledBy="modal-title">
+      <div className="modal-eyebrow">GABUNG BATCH</div><h2 id="modal-title">Ikut patungan<br /><em>{batch.name}</em></h2>
+      <OrderForm batch={batch} whatsappNumber={whatsappNumber} onDone={close} />
+    </Modal>}
+  </>;
+}

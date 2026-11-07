@@ -46,6 +46,7 @@ export function resolveTiers(batch: Pick<Batch, "tiers" | "current">) {
 export function daysLeft(closesAt: string, now = Date.now()) {
   return Math.max(0, Math.ceil((new Date(closesAt).getTime() - now) / 86_400_000));
 }
+
 export function formatDeadline(closesAt: string) {
   return new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date(closesAt)) + " WIB";
 }
@@ -82,3 +83,6 @@ export function summarizeCategories(batches: Batch[]): CategorySummary[] {
 }
 
 export const percentOf = (batch: Pick<Batch, "current" | "minimum">) => Math.min(100, Math.round((batch.current / batch.minimum) * 100));
+
+/** Foto dekoratif (Unsplash) untuk halaman publik. */
+export const photo = (id: string, width = 1200) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=80`;
