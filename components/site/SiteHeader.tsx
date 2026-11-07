@@ -13,6 +13,7 @@ const links = [
   { href: "/patungan", label: "Patungan" },
   { href: "/kategori", label: "Kategori" },
   { href: "/cara-kerja", label: "Cara kerja" },
+  { href: "/supplier", label: "Untuk supplier" },
   { href: "/pesanan", label: "Kelola pesanan" },
 ];
 
