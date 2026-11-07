@@ -46,8 +46,23 @@ export function resolveTiers(batch: Pick<Batch, "tiers" | "current">) {
 export function daysLeft(closesAt: string, now = Date.now()) {
   return Math.max(0, Math.ceil((new Date(closesAt).getTime() - now) / 86_400_000));
 }
+export function formatDeadline(closesAt: string) {
+  return new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" }).format(new Date(closesAt)) + " WIB";
+}
+
+export const statusLabel: Record<BatchStatus, string> = {
+  open: "Terbuka",
+  successful: "Berhasil — kuota tercapai",
+  failed: "Tidak tercapai",
+  cancelled: "Dibatalkan",
+};
+
 export function isValidQuantity(quantity: number) {
   return Number.isFinite(quantity) && quantity > 0 && quantity <= MAX_ORDER_QUANTITY && Math.round(quantity * 1000) === quantity * 1000;
+}
+
+export function categorySlug(name: string) {
+  return name.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 export const percentOf = (batch: Pick<Batch, "current" | "minimum">) => Math.min(100, Math.round((batch.current / batch.minimum) * 100));
