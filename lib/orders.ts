@@ -3,24 +3,25 @@ import { createHash, randomBytes } from "node:crypto";
 import { isValidQuantity, type Batch, type BatchStatus } from "@/lib/batch";
 import { demoBatches } from "@/lib/demo-data";
 import { createSupabaseAdminClient, hasSupabaseSecret } from "@/lib/supabase/server";
+import type { Channel, Frequency } from "@/lib/agent/types";
 
+const hashCode = (value: string) => createHash("sha256").update(value.trim()).digest("hex");
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (value: string) => uuidPattern.test(value);
-const hashCode = (value: string) => createHash("sha256").update(value.trim()).digest("hex");
 export const normalizePhone = (phone: string) => phone.replace(/[\s()-]/g, "");
-
-export type OrderChannel = "website" | "whatsapp";
+const senderPhone = (channel: "website" | Channel, value: string) => (channel === "simulator" ? value : normalizePhone(value));
 
 export const BATCH_CLOSED_MESSAGE = "Batch ini sudah ditutup. Pesanan tidak dapat dibuat atau diubah.";
 export const ORDER_NOT_FOUND_MESSAGE = "Pesanan tidak ditemukan. Periksa kode pengelolaan.";
 export const INVALID_QUANTITY_MESSAGE = "Jumlah harus lebih dari nol dan maksimal 100.000.";
+const SIMULATOR_LIMIT_MESSAGE = "Batas pesanan simulator untuk batch ini sudah penuh.";
 
 export type CreateOrderInput = {
   groupId: string;
   customerName: string;
   phone: string;
   quantity: number;
-  channel?: OrderChannel;
+  channel?: "website" | Channel;
   providerMessageId?: string;
 };
 
@@ -119,13 +120,19 @@ export async function getOpenBatch(id: string) {
 function rpcMessage(message: string, fallback: string) {
   if (message.includes("batch_closed")) return BATCH_CLOSED_MESSAGE;
   if (message.includes("order_not_found")) return ORDER_NOT_FOUND_MESSAGE;
+  if (message.includes("simulator_limit")) return SIMULATOR_LIMIT_MESSAGE;
   if (message.includes("invalid_order") || message.includes("invalid_action")) return INVALID_QUANTITY_MESSAGE;
   return fallback;
 }
 
+function isValidSender(channel: CreateOrderInput["channel"], phone: string) {
+  if (channel !== "simulator") return /^\+?[\d\s()-]{8,20}$/.test(phone);
+  return phone.length >= 8 && phone.length <= 24;
+}
+
 export async function createOrder(input: CreateOrderInput) {
   const name = input.customerName.trim();
-  if (name.length < 2 || name.length > 120 || !/^\+?[\d\s()-]{8,20}$/.test(input.phone) || !isValidQuantity(input.quantity)) {
+  if (name.length < 2 || name.length > 120 || !isValidSender(input.channel, input.phone) || !isValidQuantity(input.quantity)) {
     throw new Error("Periksa nama, nomor WhatsApp, dan jumlah pesanan (maksimal 100.000, hingga 3 desimal).");
   }
   if (!hasSupabaseSecret()) throw new Error("Pemesanan belum aktif. Lengkapi konfigurasi Supabase di .env.local.");
@@ -137,7 +144,7 @@ export async function createOrder(input: CreateOrderInput) {
   const { data, error } = await supabase.rpc("create_group_order", {
     p_patungan_id: input.groupId,
     p_customer_name: name,
-    p_phone: normalizePhone(input.phone),
+    p_phone: senderPhone(channel, input.phone),
     p_quantity: input.quantity,
     p_channel: channel,
     p_management_code_hash: code ? hashCode(code) : null,
@@ -204,15 +211,59 @@ export async function cancelOrderByCode(code: string) {
   await manageOrder(order.id, null, code, "cancel", null);
 }
 
-/** Validasi jumlah dilakukan RPC setelah cek kepemilikan dan status batch. */
-export async function manageOrder(id: string, phone: string | null, code: string | null, action: "update" | "cancel", quantity: number | null) {
+/** Pesanan aktif dari pengirim yang sama di kanal agen (WhatsApp atau simulator). */
+export async function listOrdersForSender(channel: Channel, senderKey: string): Promise<ManagedOrder[]> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.from("orders").select(orderColumns)
+    .eq("channel", channel).eq("phone", senderPhone(channel, senderKey)).eq("status", "confirmed")
+    .order("created_at", { ascending: false }).limit(10);
+  if (error) throw new Error("Pesanan tidak dapat dimuat.");
+  const orders = await Promise.all(data.map(toManagedOrder));
+  return orders.filter((order): order is ManagedOrder => Boolean(order));
+}
+
+/** Validasi jumlah dilakukan RPC setelah cek kepemilikan dan status batch, sehingga urutan error sama dengan adapter memory. */
+export async function manageOrder(id: string, sender: { channel: Channel; key: string } | null, code: string | null, action: "update" | "cancel", quantity: number | null) {
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.rpc("manage_group_order", {
     p_order_id: id,
-    p_phone: phone ? normalizePhone(phone) : null,
+    p_phone: sender ? senderPhone(sender.channel, sender.key) : null,
     p_management_code_hash: code ? hashCode(code) : null,
     p_action: action,
     p_quantity: quantity,
   });
   if (error) throw new Error(rpcMessage(error.message, action === "update" ? "Pesanan tidak dapat diubah." : "Pesanan tidak dapat dibatalkan."));
+}
+
+export type DemandInterestInput = {
+  channel: "website" | Channel;
+  senderKey: string;
+  material: string;
+  quantity: number | null;
+  unit: string | null;
+  frequency: Frequency | null;
+};
+
+export async function recordDemandInterest(input: DemandInterestInput): Promise<{ id: string }> {
+  const material = input.material.trim();
+  if (material.length < 2 || material.length > 120) throw new Error("Nama bahan harus 2 sampai 120 karakter.");
+  if (input.quantity !== null && !isValidQuantity(input.quantity)) throw new Error(INVALID_QUANTITY_MESSAGE);
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.rpc("record_demand_interest", {
+    p_channel: input.channel,
+    p_sender_key: input.senderKey,
+    p_material: material,
+    p_quantity: input.quantity,
+    p_unit: input.unit,
+    p_frequency: input.frequency,
+  });
+  if (error) throw new Error(rpcMessage(error.message, "Minat belum dapat dicatat. Coba lagi."));
+  return { id: data as string };
+}
+
+export async function purgeSimulatorOrders(): Promise<number> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.rpc("purge_simulator_orders");
+  if (error) throw new Error("Pesanan simulator tidak dapat dihapus.");
+  return Number(data);
 }

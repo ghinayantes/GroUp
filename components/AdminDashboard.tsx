@@ -8,7 +8,7 @@ import type { AdminBatch, AdminOrder, AdminSupplier } from "@/lib/admin";
 import { formatDeadline, formatQuantity, resolveTiers, rupiah, statusLabel } from "@/lib/batch";
 
 const paymentLabels: Record<AdminOrder["paymentStatus"], string> = { not_due: "Belum ditagih", due: "Menunggu bayar", paid: "Lunas", refunded: "Dikembalikan" };
-const channelLabels: Record<AdminOrder["channel"], string> = { website: "Website", whatsapp: "WhatsApp" };
+const channelLabels: Record<AdminOrder["channel"], string> = { website: "Website", whatsapp: "WhatsApp", simulator: "Simulator" };
 const fulfillmentLabels: Record<AdminOrder["fulfillmentStatus"], string> = { pending: "Disiapkan", ready: "Siap diambil", collected: "Sudah diambil", delivered: "Sudah dikirim" };
 
 async function send(url: string, method: string, body?: unknown) {

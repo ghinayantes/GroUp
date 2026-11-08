@@ -15,7 +15,7 @@ export type AdminOrder = {
   customerName: string;
   phone: string;
   quantity: number;
-  channel: "website" | "whatsapp";
+  channel: "website" | "whatsapp" | "simulator";
   status: "confirmed" | "cancelled";
   paymentStatus: "not_due" | "due" | "paid" | "refunded";
   fulfillmentStatus: "pending" | "ready" | "collected" | "delivered";
