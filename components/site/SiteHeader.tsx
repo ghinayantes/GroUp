@@ -15,6 +15,7 @@ const links = [
   { href: "/cara-kerja", label: "Cara kerja" },
   { href: "/supplier", label: "Untuk supplier" },
   { href: "/pesanan", label: "Kelola pesanan" },
+  { href: "/simulator", label: "Coba simulator" },
 ];
 
 export default function SiteHeader({ categories }: { categories: CategorySummary[] }) {
