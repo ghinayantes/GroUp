@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import { Fredoka } from "next/font/google";
 import "./globals.css";
+
+const brandFont = Fredoka({ subsets: ["latin"], variable: "--font-brand" });
 
 export const metadata: Metadata = {
   title: "GroUp — Patungan bahan baku UMKM",
@@ -9,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="id">
+    <html lang="id" className={brandFont.variable}>
       <body>{children}</body>
     </html>
   );
