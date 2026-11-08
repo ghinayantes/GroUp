@@ -1,6 +1,6 @@
 # GroUp
 
-Website patungan bahan baku untuk usaha mikro. Pembeli bergabung ke batch mingguan, kuota terkumpul bersama, dan harga per unit turun mengikuti tier kuantitas.
+Website patungan bahan baku untuk usaha mikro. Pembeli bisa bergabung lewat website atau WhatsApp; kedua jalur menyimpan pesanan ke tabel yang sama. WhatsApp memakai engine agen di `lib/agent/`.
 
 ## Menjalankan website
 
@@ -45,6 +45,12 @@ Semua halaman publik berada di `app/(site)/` dan memakai header (pencarian + kat
 - `/cara-kerja` — alur patungan, simulasi harga bertingkat, perintah WhatsApp, dan FAQ.
 - `/supplier` — informasi dan pendaftaran mitra supplier lewat email.
 - `/pesanan` — ubah jumlah atau batalkan pesanan website memakai kode pengelolaan yang ditampilkan sekali saat pesanan dibuat.
+
+## WhatsApp Cloud API
+
+Isi server-side `WHATSAPP_API_VERSION` (format `vNN.N`), `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN`, dan `WHATSAPP_APP_SECRET`. Opsional, isi `NEXT_PUBLIC_WHATSAPP_NUMBER` (kode negara dan angka saja) agar website menampilkan tautan WhatsApp.
+
+Daftarkan callback Meta ke `https://<domain-publik>/api/whatsapp/webhook`, masukkan verify token yang sama, lalu subscribe ke event `messages`. Webhook harus menggunakan HTTPS yang dapat dijangkau Meta. Pengembangan lokal dapat memakai tunnel HTTPS. Pembeli mengirim `MULAI`, memilih batch, membaca aturan batch, memasukkan jumlah, lalu mengonfirmasi. `PESANAN` menampilkan pesanan aktif dari nomor yang sama, `UBAH <kode> <jumlah>` mengubah jumlah, dan `BATAL <kode>` membatalkan selama batch masih terbuka. `UBAH` dan `BATAL` kini menampilkan tombol konfirmasi dulu; perubahan baru disimpan setelah pembeli menekan tombol. `BATAL` tanpa kode menutup pertanyaan yang sedang berjalan. Webhook memverifikasi signature, mengabaikan ID pesan duplikat, dan memproses pesan setelah respons dikirim (`after()`).
 
 ## Aturan MVP
 
