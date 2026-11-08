@@ -435,6 +435,7 @@ button.pill{cursor:pointer}
 .chat-picker button:hover{border-color:var(--green);background:var(--green-tint)}
 .chat-picker small{color:var(--muted);font-size:12px}
 .admin-sim-tools{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 18px}
+
 @media(max-width:1000px){
   .hero{grid-template-columns:1fr;gap:32px;padding-top:40px}
   .hero-copy p{max-width:560px}

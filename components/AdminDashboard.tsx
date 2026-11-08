@@ -114,6 +114,22 @@ function OrderRow({ order, batch }: { order: AdminOrder; batch: AdminBatch }) {
   </tr>;
 }
 
+function SimulatorPurge({ batches }: { batches: AdminBatch[] }) {
+  const { busy, message, run } = useAction();
+  const active = batches.filter((batch) => batch.status === "open").flatMap((batch) => batch.orders).filter((order) => order.channel === "simulator" && order.status === "confirmed").length;
+
+  function purge() {
+    if (!window.confirm(`Hapus semua pesanan simulator di batch yang masih terbuka (${active} pesanan aktif)? Progres batch akan turun dan tindakan ini tidak bisa dibatalkan.`)) return;
+    run(() => send("/api/admin/simulator-orders", "DELETE") as Promise<{ deleted: number }>, ({ deleted }) => `${deleted} pesanan simulator dihapus.`);
+  }
+
+  return <div className="admin-sim-tools">
+    <button className="button button-outline" disabled={busy} onClick={purge}>{busy ? "Menghapus…" : "Hapus pesanan simulator"}</button>
+    <small>{active} pesanan simulator aktif di batch terbuka.</small>
+    {message && <p className="admin-message" role="status">{message}</p>}
+  </div>;
+}
+
 function BatchCard({ batch }: { batch: AdminBatch }) {
   const { busy, message, run } = useAction();
   const { current, next } = resolveTiers({ tiers: batch.tiers, current: batch.committed });
@@ -167,7 +183,8 @@ export default function AdminDashboard({ batches, suppliers, loadError }: { batc
     <section className="admin-panel admin-wide">
       <div className="eyebrow eyebrow-dark">PENGELOLAAN BATCH</div>
       <h1>Batch & pesanan</h1>
-      <p>Pesanan dari website dan WhatsApp masuk ke daftar yang sama. Setelah deadline, tutup batch: di bawah minimum batch tidak diproses; jika tercapai, harga final dibekukan lalu pembayaran dan penyerahan dicatat manual.</p>
+      <p>Pesanan dari website, WhatsApp, dan simulator masuk ke daftar yang sama. Setelah deadline, tutup batch: di bawah minimum batch tidak diproses; jika tercapai, harga final dibekukan lalu pembayaran dan penyerahan dicatat manual.</p>
+      <SimulatorPurge batches={batches} />
       {batches.length === 0 ? <p className="admin-message">Belum ada batch.</p> : <div className="admin-batches">{batches.map((batch) => <BatchCard key={batch.id} batch={batch} />)}</div>}
     </section>
     <CreateBatchForm suppliers={suppliers} />
