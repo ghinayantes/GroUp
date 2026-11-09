@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { INTENTS } from "@/lib/agent/types";
 import { augment, mulberry32 } from "./augment";
 import { readJsonl, writeJsonl, type IntentRow } from "./rows";
@@ -7,7 +7,8 @@ import { TEST_SET_RULES, TRAIN_SOURCE_RULES, validateRows } from "./validate";
 
 const DIR = "ai/data";
 const SEED = 42;
-const VAL_SIZE = 300;
+const MAX_VAL_SIZE = 300;
+const VAL_RATIO = 0.2;
 
 function load(path: string, required: boolean): IntentRow[] {
   if (!existsSync(path)) {
@@ -25,12 +26,14 @@ function assertValid(name: string, rows: IntentRow[], rules: typeof TEST_SET_RUL
 
 const test = load(`${DIR}/test.jsonl`, true);
 assertValid("test.jsonl", test, TEST_SET_RULES);
-const pool = [...load(`${DIR}/raw/synthetic.jsonl`, true), ...load(`${DIR}/raw/team.jsonl`, false)];
+const rawFiles = existsSync(`${DIR}/raw`) ? readdirSync(`${DIR}/raw`).filter((name) => name.endsWith(".jsonl")) : [];
+if (!rawFiles.length) throw new Error(`${DIR}/raw/*.jsonl belum ada.`);
+const pool = rawFiles.flatMap((name) => load(`${DIR}/raw/${name}`, true));
 assertValid("raw/*.jsonl", pool, TRAIN_SOURCE_RULES);
 
 const clean = dedupeAgainst(pool, test);
 const rng = mulberry32(SEED);
-const { train, val } = stratifiedSplit(clean, VAL_SIZE, rng);
+const { train, val } = stratifiedSplit(clean, Math.min(MAX_VAL_SIZE, Math.round(clean.length * VAL_RATIO)), rng);
 const augmented = train.flatMap((row) => [row, ...augment(row.text, rng).map((text) => ({ ...row, text }))]);
 
 writeJsonl(`${DIR}/train.jsonl`, augmented);

@@ -1,6 +1,6 @@
 # Pedoman label intent
 
-Dipakai untuk menulis dan melabeli `ai/data/test.jsonl`, `ai/data/raw/team.jsonl`, dan memeriksa data sintetis. Satu pesan = satu intent.
+Dipakai untuk menulis dan melabeli `ai/data/test.jsonl`, `ai/data/raw/team.jsonl`, dan memeriksa data sintetis (`ai/data/raw/*.jsonl` lainnya, misalnya `synthetic.jsonl` dan `train_wa.jsonl`). Satu pesan = satu intent.
 
 ## Format
 
@@ -10,9 +10,9 @@ Satu baris JSON per pesan:
 {"text": "kak cabe 5 kilo ya", "intent": "pesan_baru", "source": "team"}
 ```
 
-- `source`: `team` (ditulis tim), `umkm` (dari pelaku UMKM, dengan persetujuan), atau `synthetic` (hanya di `raw/synthetic.jsonl`).
-- `test.jsonl` hanya boleh berisi `team` dan `umkm`, minimal 300 baris dan minimal 25 per intent.
-- Penulis set uji **tidak boleh melihat** `raw/synthetic.jsonl`, `train.jsonl`, atau `val.jsonl`.
+- `source`: `team` (ditulis tim), `umkm` (dari pelaku UMKM, dengan persetujuan), atau `synthetic` (hanya di `raw/`, tidak boleh di `test.jsonl`).
+- `test.jsonl` hanya boleh berisi `team` dan `umkm`, minimal 150 baris dan minimal 15 per intent.
+- Penulis set uji **tidak boleh melihat** `raw/synthetic.jsonl`, `raw/train_wa.jsonl`, `train.jsonl`, atau `val.jsonl`.
 - Jangan tulis nomor telepon, nama asli, atau alamat. Contoh dari pelaku UMKM: hapus nama dan nomor, lalu catat persetujuannya di bagian akhir file ini.
 - Cek format dengan `npm run data:check`.
 
