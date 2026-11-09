@@ -88,3 +88,17 @@ describe("directAction", () => {
     expect(route(intent, "halo")).toEqual({ type: "menu" });
   });
 });
+
+describe("review: jalur langsung tidak menebak", () => {
+  it("ubah_pesanan relatif (tambahin 2 lagi) → null", () => {
+    expect(route("ubah_pesanan", "cabe tambahin 2 lagi", [order("ab12cd00-0000-4000-8000-000000000001", CABAI)])).toBeNull();
+  });
+
+  it("pesan_baru dengan satuan tak bisa dikonversi (dus) → ask_quantity", () => {
+    expect(route("pesan_baru", "mau 10 dus minyak")).toEqual({ type: "ask_quantity", batchId: OPEN[3].id });
+  });
+
+  it("pesan_baru 1 ton cabai → 1000 kg", () => {
+    expect(route("pesan_baru", "mau cabai keriting 1 ton")).toEqual({ type: "confirm_join", batchId: CABAI.id, quantity: 1000 });
+  });
+});

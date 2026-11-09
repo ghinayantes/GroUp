@@ -12,7 +12,7 @@ export function directAction(intent: Intent, slots: ExtractedSlots): ProposedAct
       return quantity ? { type: "confirm_join", batchId: batch.id, quantity } : { type: "ask_quantity", batchId: batch.id };
     }
     case "ubah_pesanan": {
-      if (!slots.order || !slots.quantity) return null;
+      if (!slots.order || !slots.quantity || slots.relative) return null;
       const quantity = toBatchUnit(slots.quantity, slots.order.batch.unit);
       return quantity ? { type: "confirm_change", orderCode: shortCode(slots.order.id), quantity } : null;
     }

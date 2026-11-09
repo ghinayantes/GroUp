@@ -4,7 +4,7 @@ import { shortCode } from "./copy";
 
 export type QuantityMention = { value: number; unit: string | null };
 
-export type ExtractedSlots = { batches: Batch[]; quantity: QuantityMention | null; order: ManagedOrder | null };
+export type ExtractedSlots = { batches: Batch[]; quantity: QuantityMention | null; order: ManagedOrder | null; relative: boolean };
 
 export const ALIASES: Record<string, string> = {
   cabe: "cabai",
@@ -33,7 +33,15 @@ const UNITS: Record<string, string> = {
   pack: "pack",
   pak: "pack",
   ikat: "ikat",
+  ton: "ton",
+  kwintal: "kwintal",
+  kuintal: "kwintal",
+  ml: "ml",
 };
+
+// Satuan yang dikenali supaya tidak dianggap angka tanpa satuan, tapi tidak pernah dikonversi diam-diam.
+const OTHER_UNITS = ["dus", "kardus", "karton", "box", "kotak", "krat", "peti", "bal", "lusin", "kodi", "biji", "buah", "butir", "pcs", "botol", "jerigen", "galon", "bungkus", "renteng", "rim"];
+for (const unit of OTHER_UNITS) UNITS[unit] = unit;
 
 const NUMBER_WORDS: Record<string, number> = {
   satu: 1,
@@ -51,20 +59,22 @@ const NUMBER_WORDS: Record<string, number> = {
 };
 
 const TO_BATCH_UNIT: Record<string, Record<string, number>> = {
-  kg: { gram: 0.001, ons: 0.1 },
+  kg: { gram: 0.001, ons: 0.1, kwintal: 100, ton: 1000 },
+  liter: { ml: 0.001 },
 };
 
 const FUZZY_MAX_DISTANCE = 0.25;
 const FUZZY_MIN_LENGTH = 4;
 const ORDER_CODE = /(?<![\p{L}\d])[0-9a-z]{6}(?![\p{L}\d])/giu;
+const RELATIVE = /(?<!\p{L})(n?tambah\p{L}*|kurang\p{L}*|lagi|lg)(?!\p{L})/iu;
 
 const unitPattern = Object.keys(UNITS).sort((a, b) => b.length - a.length).join("|");
 const NUMERIC = new RegExp(
   String.raw`(?<![\p{L}\d.,/])(\d+\/\d+|\d{1,3}(?:\.\d{3})+(?![\d,])|\d+(?:[.,]\d+)?)\s*(${unitPattern})?(?![\p{L}\d])`,
-  "iu",
+  "giu",
 );
-const WORD = new RegExp(String.raw`(?<!\p{L})(${Object.keys(NUMBER_WORDS).join("|")})(?:\s+(${unitPattern}))?(?!\p{L})`, "iu");
-const SE_UNIT = new RegExp(String.raw`(?<!\p{L})se(${unitPattern})(?!\p{L})`, "iu");
+const WORD = new RegExp(String.raw`(?<!\p{L})(${Object.keys(NUMBER_WORDS).join("|")})(?:\s+(${unitPattern}))?(?!\p{L})`, "giu");
+const SE_UNIT = new RegExp(String.raw`(?<!\p{L})se(${unitPattern})(?!\p{L})`, "giu");
 
 const normalizeSpaces = (text: string) => text.toLowerCase().replace(/\s+/g, " ").trim();
 
@@ -81,19 +91,18 @@ const unitOf = (raw: string | undefined) => (raw ? UNITS[raw.toLowerCase()] : nu
 
 export function parseQuantity(text: string): QuantityMention | null {
   const candidates: { index: number; mention: QuantityMention }[] = [];
-
-  const numeric = NUMERIC.exec(text);
-  if (numeric) {
-    const value = parseNumber(numeric[1]);
-    if (Number.isFinite(value)) candidates.push({ index: numeric.index, mention: { value, unit: unitOf(numeric[2]) } });
+  for (const match of text.matchAll(NUMERIC)) {
+    const value = parseNumber(match[1]);
+    if (Number.isFinite(value)) candidates.push({ index: match.index, mention: { value, unit: unitOf(match[2]) } });
   }
-  const word = WORD.exec(text);
-  if (word) candidates.push({ index: word.index, mention: { value: NUMBER_WORDS[word[1].toLowerCase()], unit: unitOf(word[2]) } });
-  const se = SE_UNIT.exec(text);
-  if (se) candidates.push({ index: se.index, mention: { value: 1, unit: unitOf(se[1]) } });
-
+  for (const match of text.matchAll(WORD)) candidates.push({ index: match.index, mention: { value: NUMBER_WORDS[match[1].toLowerCase()], unit: unitOf(match[2]) } });
+  for (const match of text.matchAll(SE_UNIT)) candidates.push({ index: match.index, mention: { value: 1, unit: unitOf(match[1]) } });
   candidates.sort((a, b) => a.index - b.index);
-  return candidates[0]?.mention ?? null;
+
+  const withUnit = candidates.find((c) => c.mention.unit !== null);
+  if (withUnit) return withUnit.mention;
+  const values = new Set(candidates.map((c) => c.mention.value));
+  return values.size === 1 ? candidates[0].mention : null;
 }
 
 export function toBatchUnit(quantity: QuantityMention, batchUnit: string): number | null {
@@ -177,5 +186,5 @@ export function matchOrder(text: string, orders: ManagedOrder[]): ManagedOrder |
 export function extractSlots(text: string, ctx: { batches: Batch[]; orders: ManagedOrder[] }): ExtractedSlots {
   const order = matchOrder(text, ctx.orders);
   const withoutCode = order ? text.replace(new RegExp(shortCode(order.id), "i"), " ") : text;
-  return { batches: matchBatches(text, ctx.batches), quantity: parseQuantity(withoutCode), order };
+  return { batches: matchBatches(text, ctx.batches), quantity: parseQuantity(withoutCode), order, relative: RELATIVE.test(text) };
 }

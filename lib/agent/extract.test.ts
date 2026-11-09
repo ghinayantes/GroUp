@@ -149,3 +149,31 @@ describe("nameMatchScore", () => {
     expect(nameMatchScore(text, name)).toBeCloseTo(expected);
   });
 });
+
+describe("review: satuan tak dikenal dan angka yang bersaing", () => {
+  it.each([
+    ["mau cabai keriting 1 ton", { value: 1, unit: "ton" }],
+    ["pesan bawang 3 kwintal", { value: 3, unit: "kwintal" }],
+    ["mau 10 dus minyak", { value: 10, unit: "dus" }],
+    ["pesan cabe utk tgl 12 sebanyak 5 kg", { value: 5, unit: "kg" }],
+    ["2 orang mau cabe 5 kg", { value: 5, unit: "kg" }],
+    ["tgl 12 mau 5", null],
+    ["cabe 5 dong", { value: 5, unit: null }],
+  ])("%s", (input, expected) => {
+    expect(parseQuantity(input)).toEqual(expected);
+  });
+
+  it.each([
+    [{ value: 1, unit: "ton" }, "kg", 1000],
+    [{ value: 3, unit: "kwintal" }, "kg", 300],
+    [{ value: 10, unit: "dus" }, "liter", null],
+  ])("%o ke %s", (quantity, unit, expected) => {
+    expect(toBatchUnit(quantity, unit)).toBe(expected);
+  });
+
+  it("menandai perubahan relatif", () => {
+    expect(extractSlots("cabe tambahin 2 lagi", { batches: FIXTURE_BATCHES, orders: [] }).relative).toBe(true);
+    expect(extractSlots("kurangi cabe 1 kg", { batches: FIXTURE_BATCHES, orders: [] }).relative).toBe(true);
+    expect(extractSlots("cabe jadiin 8", { batches: FIXTURE_BATCHES, orders: [] }).relative).toBe(false);
+  });
+});
