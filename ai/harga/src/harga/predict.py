@@ -185,10 +185,13 @@ def _hash_kode(kode_dir: Path | None = None) -> str:
 
 def tulis_json(pred: pd.DataFrame, path: Path, mode: str) -> None:
     """Versi JSON dari prediksi.csv untuk dibaca aplikasi web (NaN -> null)."""
-    rows = pred.astype({"tanggal_terakhir": str, "tanggal_target": str})
+    rows = pred.copy()
+    for kolom in ("tanggal_terakhir", "tanggal_target"):
+        rows[kolom] = pd.to_datetime(rows[kolom]).dt.strftime("%Y-%m-%d")
     rows = rows.astype(object).where(rows.notna(), None).to_dict(orient="records")
-    path.write_text(json.dumps({"mode": mode, "dibuat": pd.Timestamp.now().isoformat(timespec="seconds"),
-                                "prediksi": rows}, ensure_ascii=False, indent=2), encoding="utf-8")
+    dibuat = pd.Timestamp.now(tz="Asia/Jakarta").isoformat(timespec="seconds")
+    path.write_text(json.dumps({"skema": 1, "mode": mode, "dibuat": dibuat, "prediksi": rows},
+                               ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def run(csv_path, out_dir="output", paksa: bool = False):
