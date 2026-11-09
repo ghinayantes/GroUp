@@ -21,6 +21,11 @@ export const COMMODITY_NAMES: Record<string, string> = {
 };
 
 const REGION = "Kota Bandung";
+
+const isRegion = (region: string) => {
+  const words = region.toLowerCase().match(/\p{L}+/gu) ?? [];
+  return words.filter((word) => word !== "kota").join(" ") === "bandung";
+};
 const SOURCE = "PIHPS";
 
 export function createMarketPricePort(data: PriceFile = prediksi): MarketPricePort {
@@ -37,7 +42,7 @@ export function createMarketPricePort(data: PriceFile = prediksi): MarketPricePo
 
   return {
     async lookup(material, region) {
-      if (region && nameMatchScore(region, REGION) === 0) return null;
+      if (region && !isRegion(region)) return null;
       const scored = prices.map((price) => {
         const score = nameMatchScore(material, price.material);
         return { price, score, matched: Math.round(score * price.material.split(" ").length) };

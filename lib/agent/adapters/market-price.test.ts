@@ -59,6 +59,9 @@ describe("createMarketPricePort", () => {
 
   it("wilayah selain Bandung → null, Bandung diterima", async () => {
     expect(await port.lookup("bawang merah", "Surabaya")).toBeNull();
+    expect(await port.lookup("bawang merah", "Kota Bogor")).toBeNull();
+    expect(await port.lookup("bawang merah", "Kabupaten Bandung")).toBeNull();
+    expect((await port.lookup("bawang merah", "Kota Bandung"))?.pricePerUnit).toBe(35000);
     expect((await port.lookup("bawang merah", "bandung"))?.pricePerUnit).toBe(35000);
   });
 
