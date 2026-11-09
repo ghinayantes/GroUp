@@ -17,3 +17,10 @@ describe("redact", () => {
     expect(redact(input)).toBe(expected);
   });
 });
+
+describe("redact nomor bertitik", () => {
+  it("0812.3456.7890 → [NOMOR], harga bertitik tidak berubah", () => {
+    expect(redact("hub 0812.3456.7890 ya")).toBe("hub [NOMOR] ya");
+    expect(redact("Rp1.250.000.000")).toBe("Rp1.250.000.000");
+  });
+});
