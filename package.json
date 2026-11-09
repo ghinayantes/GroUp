@@ -10,7 +10,6 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "harga:import": "tsx --env-file-if-exists=.env.local scripts/import-market-prices.ts",
     "data:generate": "tsx --conditions=react-server --env-file-if-exists=.env.local ai/data/generate_synthetic.ts",
     "data:build": "tsx ai/data/build_splits.ts",
     "data:check": "tsx ai/data/check.ts",
