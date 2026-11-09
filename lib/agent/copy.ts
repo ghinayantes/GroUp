@@ -10,6 +10,8 @@ export const ORDER_CODE_NOT_FOUND_TEXT = "Kode pesanan tidak ditemukan di daftar
 export const ORDER_LOCKED_TEXT = "Batch untuk pesanan ini sudah ditutup, jadi pesanannya tidak bisa diubah atau dibatalkan lagi.";
 export const BATCH_UNAVAILABLE_TEXT = "Batch tersebut sudah tidak tersedia. Kirim MULAI untuk melihat batch terbaru.";
 export const ACTION_FAILED_TEXT = "Maaf, permintaanmu belum bisa diproses. Coba lagi sebentar lagi ya.";
+export const AI_PREFIX = "🤖 ";
+export const aiNoteText = (siteUrl: string) => `Balasan ini dibantu AI dan bisa keliru. Cara kerjanya: ${siteUrl}/transparansi-ai`;
 
 export const text = (body: string, aiGenerated = false): Reply => ({ kind: "text", body, aiGenerated });
 

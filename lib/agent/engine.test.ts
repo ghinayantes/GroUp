@@ -284,3 +284,51 @@ describe("engine fallback dan pencatatan", () => {
     expect(deps.state.traces).toHaveLength(1);
   });
 });
+
+describe("label AI (Tugas 16)", () => {
+  const answering: Stage2Agent = {
+    model: "test/answer",
+    propose: async () => ({ action: { type: "answer", text: "Pembayaran lewat transfer setelah kuota tercapai." }, model: "test/answer", inputTokens: 1, outputTokens: 1, toolNames: [], toolOutputs: [] }),
+  };
+  const aiSetup = () => {
+    const { deps } = setup();
+    deps.classifier = null;
+    deps.stage2 = answering;
+    return { deps, engine: createEngine(deps) };
+  };
+  const NOTE = "Balasan ini dibantu AI dan bisa keliru. Cara kerjanya: http://localhost:3000/transparansi-ai";
+
+  it("balasan AI diberi awalan 🤖 dan catatan transparansi pada balasan AI pertama", async () => {
+    const { engine } = aiSetup();
+    const { replies } = await engine.handle(textMsg("kapan bayarnya kak"));
+    expect(replies).toHaveLength(1);
+    expect(replies[0].body.startsWith("🤖 Pembayaran lewat transfer")).toBe(true);
+    expect(replies[0].body).toContain(NOTE);
+  });
+
+  it("balasan AI kedua dalam 24 jam tidak mengulang catatan, setelah 24 jam catatan muncul lagi", async () => {
+    const { deps, engine } = aiSetup();
+    await engine.handle(textMsg("kapan bayarnya kak"));
+    const second = await engine.handle(textMsg("kalau transfer ke mana"));
+    expect(second.replies[0].body.startsWith("🤖 ")).toBe(true);
+    expect(second.replies[0].body).not.toContain(NOTE);
+
+    deps.now = () => new Date(FIXTURE_NOW.getTime() + 25 * 3_600_000);
+    const later = await engine.handle(textMsg("kapan bayarnya kak"));
+    expect(later.replies[0].body).toContain(NOTE);
+  });
+
+  it("balasan non-AI tidak diberi awalan 🤖", async () => {
+    const { engine } = aiSetup();
+    const { replies } = await engine.handle(textMsg("MULAI"));
+    expect(replies.every((r) => !r.body.startsWith("🤖"))).toBe(true);
+  });
+
+  it("riwayat menyimpan balasan berlabel sebagai aiGenerated", async () => {
+    const { deps, engine } = aiSetup();
+    await engine.handle(textMsg("kapan bayarnya kak"));
+    const history = await deps.history.recent("whatsapp", SENDER, 10);
+    expect(history.at(-1)).toMatchObject({ role: "assistant", aiGenerated: true });
+    expect(history.at(-1)?.content.startsWith("🤖 ")).toBe(true);
+  });
+});
