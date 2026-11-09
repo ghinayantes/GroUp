@@ -1,0 +1,16 @@
+{
+  "suite": "intent",
+  "mode": "llm-only",
+  "date": "2026-11-09",
+  "commit": "69d0299",
+  "stage2Model": "nvidia/nemotron-3.5-lightning-free",
+  "outputMode": "json-text",
+  "classifierVersion": null,
+  "status": "skipped",
+  "reason": "ai/data/test.jsonl belum ada",
+  "dataset": {
+    "path": "ai/data/test.jsonl",
+    "rows": 0,
+    "missing": true
+  }
+}

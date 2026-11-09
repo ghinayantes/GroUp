@@ -1,0 +1,16 @@
+{
+  "suite": "extract",
+  "mode": "router",
+  "date": "2026-11-09",
+  "commit": "69d0299",
+  "stage2Model": "nvidia/nemotron-3.5-lightning-free",
+  "outputMode": "json-text",
+  "classifierVersion": null,
+  "status": "skipped",
+  "reason": "evals/datasets/extract.jsonl belum ada",
+  "dataset": {
+    "path": "evals/datasets/extract.jsonl",
+    "rows": 0,
+    "missing": true
+  }
+}

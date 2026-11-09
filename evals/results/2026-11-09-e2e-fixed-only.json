@@ -1,0 +1,18 @@
+{
+  "suite": "e2e",
+  "mode": "fixed-only",
+  "date": "2026-11-09",
+  "commit": "69d0299",
+  "stage2Model": null,
+  "outputMode": null,
+  "classifierVersion": null,
+  "status": "skipped",
+  "reason": "evals/datasets/e2e.json belum ada atau kosong",
+  "datasets": [
+    {
+      "path": "evals/datasets/e2e.json",
+      "rows": 0,
+      "missing": true
+    }
+  ]
+}

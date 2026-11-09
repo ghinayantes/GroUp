@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-11-09",
+  "source": "Katalog Vercel AI Gateway (vercel.com/ai-gateway/models)",
+  "models": {
+    "nvidia/nemotron-3.5-lightning-free": { "inputPerMillion": 0, "outputPerMillion": 0 },
+    "anthropic/claude-haiku-5.5": { "inputPerMillion": 0.1, "outputPerMillion": 0.5 }
+  },
+  "comparison": "anthropic/claude-haiku-5.5"
+}

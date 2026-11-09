@@ -13,7 +13,9 @@
     "data:generate": "tsx --conditions=react-server --env-file-if-exists=.env.local ai/data/generate_synthetic.ts",
     "data:build": "tsx ai/data/build_splits.ts",
     "data:check": "tsx ai/data/check.ts",
-    "model:calibrate": "tsx --conditions=react-server ai/data/calibrate.ts"
+    "model:calibrate": "tsx --conditions=react-server ai/data/calibrate.ts",
+    "eval": "tsx --conditions=react-server --env-file-if-exists=.env.local evals/run.ts",
+    "eval:report": "tsx evals/report.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "4.3.2",
