@@ -8,6 +8,7 @@ const COOKIE = "sim_session";
 const SENDER_KEY = /^sim-[0-9a-f]{16}$/;
 const MAX_TEXT = 1000;
 const MAX_REPLY_FIELD = 200;
+const NAME_LENGTH = { min: 2, max: 80 };
 
 const optionalString = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
@@ -18,6 +19,10 @@ export async function POST(request: NextRequest) {
   const replyTitle = optionalString(body?.replyTitle).slice(0, MAX_REPLY_FIELD);
   if (!text && !replyId) return NextResponse.json({ error: "Tulis pesan dulu, ya." }, { status: 400 });
   if (text.length > MAX_TEXT) return NextResponse.json({ error: "Pesannya kepanjangan, maksimal 1.000 karakter ya." }, { status: 400 });
+  const profileName = optionalString(body?.profileName).replace(/\s+/g, " ");
+  if (profileName.length < NAME_LENGTH.min || profileName.length > NAME_LENGTH.max) {
+    return NextResponse.json({ error: "Isi nama usaha dulu, 2–80 karakter." }, { status: 400 });
+  }
 
   const existing = request.cookies.get(COOKIE)?.value;
   const senderKey = existing && SENDER_KEY.test(existing) ? existing : `sim-${randomBytes(8).toString("hex")}`;
@@ -26,7 +31,7 @@ export async function POST(request: NextRequest) {
     channel: "simulator",
     senderKey,
     messageId: crypto.randomUUID(),
-    profileName: "Pengunjung simulator",
+    profileName,
     ...(replyId ? { kind: "interactive", text: replyTitle, replyId } : { kind: "text", text }),
   };
   const result = await (await getEngine()).handle(msg);

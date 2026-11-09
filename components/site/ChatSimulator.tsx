@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Icon from "@/components/site/Icon";
 import Modal from "@/components/site/Modal";
 import type { Reply, TraceRecord } from "@/lib/agent/types";
@@ -11,6 +11,32 @@ type ListReply = Extract<Reply, { kind: "list" }>;
 type Outgoing = { text: string } | { replyId: string; replyTitle: string };
 
 const SUGGESTIONS = ["MULAI", "PESANAN", "Harga cabai berapa?"];
+const NAME_KEY = "groupSimulatorName";
+const isValidName = (name: string) => name.trim().length >= 2 && name.trim().length <= 80;
+
+const nameListeners = new Set<() => void>();
+let memoryName = "";
+
+function readSavedName() {
+  try {
+    return window.localStorage.getItem(NAME_KEY) ?? memoryName;
+  } catch {
+    return memoryName;
+  }
+}
+
+function saveName(name: string) {
+  memoryName = name;
+  try {
+    window.localStorage.setItem(NAME_KEY, name);
+  } catch {}
+  nameListeners.forEach((listener) => listener());
+}
+
+function subscribeName(listener: () => void) {
+  nameListeners.add(listener);
+  return () => nameListeners.delete(listener);
+}
 
 const stageLabel: Record<TraceRecord["stage"], string> = { fixed: "Perintah tetap", stage1: "Tahap 1 (klasifikasi)", stage2: "Tahap 2 (LLM)", fallback: "Cadangan" };
 
@@ -20,6 +46,7 @@ export default function ChatSimulator() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
+  const name = useSyncExternalStore(subscribeName, readSavedName, () => "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [picker, setPicker] = useState<ListReply | null>(null);
@@ -33,6 +60,10 @@ export default function ChatSimulator() {
 
   async function send(outgoing: Outgoing, fromTurn?: number) {
     if (busy || ("text" in outgoing && !outgoing.text.trim())) return;
+    if (!isValidName(name)) {
+      setError("Isi nama usaha dulu, ya. Nama ini dipakai sebagai nama pemesan.");
+      return;
+    }
     const label = "text" in outgoing ? outgoing.text.trim() : outgoing.replyTitle;
     setBusy(true);
     setError("");
@@ -44,7 +75,7 @@ export default function ChatSimulator() {
       const response = await fetch("/api/simulator/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify("text" in outgoing ? { text: outgoing.text.trim() } : outgoing),
+        body: JSON.stringify({ ...("text" in outgoing ? { text: outgoing.text.trim() } : outgoing), profileName: name.trim() }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.error || "Pesan belum terkirim. Coba lagi, ya.");
@@ -63,10 +94,14 @@ export default function ChatSimulator() {
   return <div className="chat-sim-layout">
     <section className="chat-sim" aria-label="Simulator chat WhatsApp">
       <header className="chat-sim-head">
-        <span className="chat-sim-avatar" aria-hidden="true">BB</span>
+        <span className="chat-sim-avatar" aria-hidden="true">GU</span>
         <div><b>GroUp</b><small>{busy ? "sedang mengetik…" : "Asisten patungan"}</small></div>
       </header>
       <p className="chat-sim-note">Ini simulator. Pesananmu tercatat sebagai pesanan simulator dan bisa dihapus pengelola.</p>
+      <label className="chat-sim-name">
+        <span>Nama usaha</span>
+        <input value={name} onChange={(e) => saveName(e.target.value)} maxLength={80} placeholder="mis. Warung Bu Sari" autoComplete="organization" disabled={busy} />
+      </label>
       <div className="chat-sim-log" ref={logRef} aria-live="polite">
         {entries.length === 0 && <div className="chat-sim-empty">
           <p>Coba kirim <b>MULAI</b> untuk melihat batch yang sedang dibuka.</p>

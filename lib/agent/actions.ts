@@ -29,7 +29,6 @@ export type ActionContext = { deps: EngineDeps; msg: InboundMessage; batches: Ba
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
-const SIMULATOR_CUSTOMER_NAME = "Pengunjung simulator";
 
 const BUTTON_STAGE: Record<string, SessionStage> = {
   [BUTTON.ORDER_CONFIRM]: "confirm_order",
@@ -125,7 +124,7 @@ async function execute(session: AgentSession, ctx: ActionContext): Promise<Reply
         batchId: session.batchId,
         channel: msg.channel,
         senderKey: msg.senderKey,
-        customerName: session.customerName ?? msg.profileName ?? (msg.channel === "simulator" ? SIMULATOR_CUSTOMER_NAME : msg.senderKey),
+        customerName: session.customerName ?? msg.profileName ?? msg.senderKey,
         quantity: session.quantity,
         messageId: msg.messageId,
       });

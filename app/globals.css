@@ -429,6 +429,9 @@ button.pill{cursor:pointer}
 .chat-trace dt{color:var(--muted)}
 .chat-trace dd{margin:0;overflow-wrap:anywhere}
 .chat-trace code{font-size:12px}
+.chat-sim-name{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:#fff;font-size:13px;color:var(--muted)}
+.chat-sim-name span{white-space:nowrap}
+.chat-sim-name input{flex:1;min-width:0;height:36px;border:1px solid #dcd9d2;border-radius:10px;padding:0 10px;font-size:16px;outline:0;color:var(--ink,inherit)}
 .info-card code{overflow-wrap:anywhere}
 .chat-trace-empty{font-size:13px;color:var(--muted)}
 .chat-picker{list-style:none;margin:0;padding:0;display:grid;gap:8px}

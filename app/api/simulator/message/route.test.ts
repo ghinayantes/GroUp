@@ -15,10 +15,12 @@ const SENDER = /^sim-[0-9a-f]{16}$/;
 
 let deps: MemoryDeps;
 
-const post = (body: unknown, cookie?: string) =>
+const NAME = "Warung Bu Sari";
+
+const post = (body: Record<string, unknown>, cookie?: string, profileName: string | null = NAME) =>
   POST(new NextRequest("http://localhost/api/simulator/message", {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify(profileName === null ? body : { profileName, ...body }),
     headers: { "Content-Type": "application/json", ...(cookie ? { cookie: `sim_session=${cookie}` } : {}) },
   }));
 
@@ -53,6 +55,17 @@ describe("POST /api/simulator/message", () => {
     expect(deps.state.history.size).toBe(0);
   });
 
+  it.each([
+    ["tanpa nama usaha", null],
+    ["nama usaha 1 huruf", "A"],
+    ["nama usaha 81 karakter", "a".repeat(81)],
+  ])("%s → 400", async (_, profileName) => {
+    const response = await post({ text: "MULAI" }, undefined, profileName);
+
+    expect(response.status).toBe(400);
+    expect(deps.state.history.size).toBe(0);
+  });
+
   it("text 1001 karakter 400", async () => {
     const response = await post({ text: "a".repeat(1001) });
 
@@ -78,6 +91,6 @@ describe("POST /api/simulator/message", () => {
     const done = await post({ replyId: BUTTON.ORDER_CONFIRM, replyTitle: "Ya, ikut" }, sender);
     expect(done.status).toBe(200);
     expect(deps.state.orders).toHaveLength(1);
-    expect(deps.state.orders[0]).toMatchObject({ channel: "simulator", senderKey: sender, batchId: row!.id, quantity: 3, customerName: "Pengunjung simulator" });
+    expect(deps.state.orders[0]).toMatchObject({ channel: "simulator", senderKey: sender, batchId: row!.id, quantity: 3, customerName: NAME });
   });
 });
