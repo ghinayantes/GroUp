@@ -14,6 +14,8 @@ select is(
   'every seeded commodity is priced per kg'
 );
 
+delete from public.market_price_snapshots;
+
 insert into public.market_price_snapshots (
   commodity_slug, region, mode, horizon, last_price, last_observed_at, target_date,
   forecast_price, forecast_low, forecast_high, change_pct, status, advice, model,
