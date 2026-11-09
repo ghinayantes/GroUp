@@ -20,6 +20,42 @@ describe("createRuntimeDeps", () => {
     warn.mockRestore();
   });
 
+  it("provider google memakai Gemini Flash Lite secara default", async () => {
+    const deps = await createRuntimeDeps({ AGENT_STAGE2_PROVIDER: "google", GOOGLE_GENERATIVE_AI_API_KEY: "kunci-uji" });
+    expect(deps.stage2?.model).toBe("google/gemini-3.5-flash-lite");
+  });
+
+  it("provider google membaca model dari AGENT_STAGE2_MODEL", async () => {
+    const deps = await createRuntimeDeps({
+      AGENT_STAGE2_PROVIDER: "google",
+      AGENT_STAGE2_MODEL: "gemini-3.5-flash",
+      GOOGLE_GENERATIVE_AI_API_KEY: "kunci-uji",
+    });
+    expect(deps.stage2?.model).toBe("google/gemini-3.5-flash");
+  });
+
+  it("provider openai-compatible memakai base URL, kunci, dan model dari env", async () => {
+    const deps = await createRuntimeDeps({
+      AGENT_STAGE2_PROVIDER: "openai-compatible",
+      AGENT_STAGE2_BASE_URL: "https://opencode.ai/zen/v1",
+      AGENT_STAGE2_API_KEY: "kunci-uji",
+      AGENT_STAGE2_MODEL: "nemotron-3.5-lightning-free",
+    });
+    expect(deps.stage2?.model).toBe("openai-compatible/nemotron-3.5-lightning-free");
+  });
+
+  it.each([
+    ["google tanpa kunci", { AGENT_STAGE2_PROVIDER: "google" }, "GOOGLE_GENERATIVE_AI_API_KEY"],
+    ["openai-compatible tanpa model", { AGENT_STAGE2_PROVIDER: "openai-compatible", AGENT_STAGE2_BASE_URL: "https://x.test/v1", AGENT_STAGE2_API_KEY: "k" }, "AGENT_STAGE2_MODEL"],
+    ["openai-compatible tanpa base URL", { AGENT_STAGE2_PROVIDER: "openai-compatible", AGENT_STAGE2_API_KEY: "k", AGENT_STAGE2_MODEL: "m" }, "AGENT_STAGE2_BASE_URL"],
+    ["provider tak dikenal", { AGENT_STAGE2_PROVIDER: "azure" }, "AGENT_STAGE2_PROVIDER"],
+  ])("%s → tahap 2 mati dengan peringatan", async (_, env, mentioned) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect((await createRuntimeDeps(env)).stage2).toBeNull();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining(mentioned));
+    warn.mockRestore();
+  });
+
   it("classifier null bila artefak model belum ada", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect((await createRuntimeDeps({})).classifier).toBeNull();
