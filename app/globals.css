@@ -242,8 +242,8 @@ button.pill{cursor:pointer}
 .pill-ok,.status-successful{background:var(--green-soft);border-color:#cde3c9;color:var(--green-dark)}
 .status-open{background:#fdf1df;border-color:#f3dcb8;color:#8a5a14}
 .status-failed,.status-cancelled{background:#f1efea;color:var(--muted)}
-.admin-batches{display:grid;gap:16px;margin-top:22px}
-.admin-batch{border:1px solid var(--line);border-radius:var(--radius-sm);padding:20px;background:#fff}
+.admin-batches{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-top:22px}
+.admin-batch{min-width:0;border:1px solid var(--line);border-radius:var(--radius-sm);padding:20px;background:#fff}
 .admin-batch header{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
 .admin-batch h3{font-size:19px;letter-spacing:-.02em;margin:10px 0 4px}
 .admin-batch header small{font-size:12px;color:var(--muted)}
