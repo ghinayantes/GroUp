@@ -5,13 +5,13 @@ import type { Stage2Agent, Stage2Result } from "@/lib/agent/ports";
 
 export type CachedAgent = Stage2Agent & { stats: { hits: number; misses: number } };
 
-export function withCache(agent: Stage2Agent, { dir = "evals/cache", refresh = false }: { dir?: string; refresh?: boolean } = {}): CachedAgent {
+export function withCache(agent: Stage2Agent, { dir = "evals/cache", refresh = false, salt = "" }: { dir?: string; refresh?: boolean; salt?: string } = {}): CachedAgent {
   const stats = { hits: 0, misses: 0 };
   return {
     model: agent.model,
     stats,
     async propose(input, tools) {
-      const key = createHash("sha256").update(agent.model).update(JSON.stringify(input)).update(JSON.stringify(input.batches)).digest("hex");
+      const key = createHash("sha256").update(agent.model).update(salt).update(JSON.stringify(input)).digest("hex");
       const file = path.join(dir, `${key}.json`);
       if (!refresh && existsSync(file)) {
         stats.hits += 1;

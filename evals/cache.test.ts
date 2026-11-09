@@ -48,6 +48,15 @@ describe("withCache", () => {
     expect(existsSync(target)).toBe(true);
   });
 
+  it("salt berbeda (mode output atau prompt berubah) → panggilan baru", async () => {
+    const inner = fakeAgent();
+    const target = path.join(dir, "salt");
+    await withCache(inner, { dir: target, salt: "json-text:a" }).propose(input, tools);
+    await withCache(inner, { dir: target, salt: "native:a" }).propose(input, tools);
+    await withCache(inner, { dir: target, salt: "native:a" }).propose(input, tools);
+    expect(inner.propose).toHaveBeenCalledTimes(2);
+  });
+
   it("menghitung hit dan miss", async () => {
     const cached = withCache(fakeAgent(), { dir: path.join(dir, "stats") });
     await cached.propose(input, tools);

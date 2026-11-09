@@ -2,7 +2,9 @@ import { execSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { loadIntentClassifier } from "@/lib/agent/stage1/classifier";
+import { createHash } from "node:crypto";
 import { createStage2Agent, type Stage2OutputMode } from "@/lib/agent/stage2/agent";
+import { STAGE2_JSON_FORMAT, STAGE2_SYSTEM } from "@/lib/agent/stage2/prompt";
 import { withCache, type CachedAgent } from "./cache";
 import { loadExtract, loadIntentTest, loadScenarios, type Loaded } from "./datasets";
 import { runIntentSuite, runScenarioSuite, scoreExtract } from "./suites";
@@ -23,7 +25,10 @@ if (!suites.every((s) => SUITES.includes(s))) throw new Error(`--suite harus all
 const model = process.env.AGENT_STAGE2_MODEL ?? "nvidia/nemotron-3.5-lightning-free";
 const outputMode = (process.env.AGENT_STAGE2_OUTPUT_MODE ?? "json-text") as Stage2OutputMode;
 const classifier = mode === "router" ? await loadIntentClassifier() : null;
-const stage2: CachedAgent | null = mode === "fixed-only" ? null : withCache(createStage2Agent({ model, outputMode }), { refresh: values.refresh });
+const stage2: CachedAgent | null = mode === "fixed-only" ? null : withCache(createStage2Agent({ model, outputMode }), {
+        refresh: values.refresh,
+        salt: `${outputMode}:${createHash("sha256").update(STAGE2_SYSTEM + STAGE2_JSON_FORMAT).digest("hex")}`,
+      });
 const credentials = Boolean(process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN);
 
 let commit = "unknown";
