@@ -82,8 +82,13 @@ async function askStage2(
   slots: ExtractedSlots,
 ): Promise<Understanding> {
   const { deps } = ctx;
-  const since = new Date(deps.now().getTime() - RATE_WINDOW_MS);
-  if ((await deps.traces.countStage2Since(senderHash(msg.channel, msg.senderKey), since)) >= STAGE2_CALLS_PER_HOUR) {
+  try {
+    const since = new Date(deps.now().getTime() - RATE_WINDOW_MS);
+    if ((await deps.traces.countStage2Since(senderHash(msg.channel, msg.senderKey), since)) >= STAGE2_CALLS_PER_HOUR) {
+      return understood({ type: "menu" }, "fallback", score, slots);
+    }
+  } catch (error) {
+    console.error("Stage-2 rate limit check failed", error instanceof Error ? error.name : "unknown error");
     return understood({ type: "menu" }, "fallback", score, slots);
   }
 

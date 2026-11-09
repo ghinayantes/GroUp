@@ -134,7 +134,7 @@ describe("understandFreeText tahap 2", () => {
     const msg = message("rahasia 081234567890");
     const result = await understandFreeText(msg, null, await context(msg));
     expect(result.action).toEqual({ type: "menu" });
-    expect(result.trace.stage).toBe("fallback");
+    expect(result.trace).toMatchObject({ stage: "fallback", action: "menu", model: null });
     expect(JSON.stringify(error.mock.calls)).not.toContain("rahasia");
     error.mockRestore();
   });
@@ -167,6 +167,18 @@ describe("understandFreeText tahap 2", () => {
     expect(result.action).toEqual({ type: "menu" });
     expect(result.trace.stage).toBe("fallback");
     expect(stage2.propose).not.toHaveBeenCalled();
+  });
+
+  it("pengecekan rate limit gagal → menu fallback, bukan error", async () => {
+    const stage2 = fakeStage2({ action: { type: "list_orders" } });
+    const { deps, context } = await setup({ stage2 });
+    deps.traces.countStage2Since = async () => Promise.reject(new Error("db down"));
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const msg = message("pesananku apa aja");
+    const result = await understandFreeText(msg, null, await context(msg));
+    expect(result).toMatchObject({ action: { type: "menu" }, trace: { stage: "fallback" } });
+    expect(stage2.propose).not.toHaveBeenCalled();
+    error.mockRestore();
   });
 
   it("tanpa classifier (llm-only) semua teks bebas langsung ke stage2", async () => {
