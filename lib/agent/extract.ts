@@ -144,6 +144,13 @@ function matchByName<T>(text: string, items: T[], nameOf: (item: T) => string): 
   return distinctive.length ? distinctive : items.filter((_, i) => hits[i].any);
 }
 
+export function nameMatchScore(text: string, name: string): number {
+  const message = expandAliases(text);
+  const tokens = words(name);
+  if (!tokens.length) return 0;
+  return tokens.filter((token) => message.some((word) => tokenMatches(word, token))).length / tokens.length;
+}
+
 export function matchBatches(text: string, batches: Batch[]): Batch[] {
   return matchByName(
     text,

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Batch } from "@/lib/batch";
 import type { ManagedOrder } from "@/lib/orders";
 import { FIXTURE_BATCHES } from "@/test/fixtures/batches";
-import { extractSlots, matchBatches, matchOrder, normalizedDistance, parseQuantity, toBatchUnit } from "./extract";
+import { extractSlots, matchBatches, matchOrder, nameMatchScore, normalizedDistance, parseQuantity, toBatchUnit } from "./extract";
 
 const byName = (name: string) => FIXTURE_BATCHES.find((batch) => batch.name.startsWith(name))!;
 
@@ -135,5 +135,17 @@ describe("normalizedDistance", () => {
     ["", "", 0],
   ])("%s vs %s", (a, b, expected) => {
     expect(normalizedDistance(a, b)).toBeCloseTo(expected);
+  });
+});
+
+describe("nameMatchScore", () => {
+  it.each([
+    ["cabe merah", "Cabai Merah Keriting", 2 / 3],
+    ["gula", "Gula Pasir Premium", 2 / 3],
+    ["gula", "Gula Pasir", 1],
+    ["tepug terigu", "Tepung Terigu", 1],
+    ["tepung", "Bawang Merah", 0],
+  ])("%s vs %s", (text, name, expected) => {
+    expect(nameMatchScore(text, name)).toBeCloseTo(expected);
   });
 });
