@@ -72,6 +72,44 @@ Buka `/simulator` (tautan "Coba simulator" di header dan footer). Simulator mema
   vercel firewall publish --yes
   ```
 
+## Agen AI
+
+Teks bebas dari WhatsApp dan simulator diproses tiga lapis:
+
+1. **Perintah baku** (`MULAI`, `PESANAN`, `UBAH`, `BATAL`, tombol) tanpa AI.
+2. **Tahap 1:** classifier intent lokal (ONNX, `models/intent-classifier/`). Selama artefak model belum ada, lapis ini dilewati.
+3. **Tahap 2:** model bahasa dengan tools baca-saja (`cari_batch`, `detail_batch`, `pesanan_saya`, `harga_pasar`). Teks dan riwayat diredaksi dulu (nomor telepon, email, deret angka panjang), angka di jawaban harus ada di hasil tool, dan setiap pengirim dibatasi 20 panggilan per jam (panggilan yang gagal ikut dihitung).
+
+Setiap aksi yang mengubah data tetap butuh tombol konfirmasi. Balasan AI diberi awalan 🤖, dan balasan AI pertama dalam 24 jam menautkan `/transparansi-ai`.
+
+Harga pasar dibaca dari `ai/harga/output/prediksi.json` (PIHPS Kota Bandung, bulanan). Untuk memperbarui: jalankan pipeline di `ai/harga/` (lihat README di sana), commit `prediksi.json`, lalu push.
+
+### Penyedia model tahap 2
+
+| Nama | Keterangan |
+|---|---|
+| `AGENT_STAGE2_PROVIDER` | `gateway` (default, Vercel AI Gateway; butuh kartu kredit terdaftar di akun Vercel), `google` (Gemini), atau `openai-compatible` |
+| `AGENT_STAGE2_MODEL` | ID model. Kosong → `nvidia/nemotron-3.5-lightning-free` untuk `gateway`, `gemini-3.5-flash-lite` untuk `google`. Wajib untuk `openai-compatible` |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Kunci Gemini dari https://aistudio.google.com/apikey |
+| `AI_GATEWAY_API_KEY` | Kunci AI Gateway untuk lokal (di Vercel cukup OIDC) |
+| `AGENT_STAGE2_BASE_URL`, `AGENT_STAGE2_API_KEY` | Endpoint kompatibel OpenAI, misalnya OpenCode Zen `https://opencode.ai/zen/v1`, OpenRouter, atau NVIDIA NIM |
+| `AGENT_STAGE2_OUTPUT_MODE` | `json-text` (default) atau `native` (output terstruktur) |
+
+Konfigurasi yang tidak lengkap mematikan tahap 2 dengan peringatan di log; teks bebas dibalas menu. Production saat ini memakai `google`.
+
+### Dataset, pelatihan, dan eval
+
+```bash
+npm run data:check          # validasi format dataset intent
+npm run data:generate       # data sintetis lewat penyedia tahap 2 di atas
+npm run data:build          # split train/val/test
+npm run model:calibrate     # ambang per intent dari val → models/intent-classifier/thresholds.json
+npm run eval -- --mode router   # juga: --mode fixed-only, --mode llm-only, --suite <nama>
+npm run eval:report         # tulis evals/REPORT.md
+```
+
+Pelatihan dijalankan di Colab (`ai/training/intent_classifier.ipynb`). Format dataset: `ai/data/intent_guidelines.md` dan `evals/datasets/README.md`. Hasil eval: `evals/REPORT.md`; model card: `models/intent-classifier/MODEL_CARD.md`.
+
 ## Pembersihan data agen
 
 `vercel.ts` mendaftarkan Vercel Schedule `agent-cleanup` setiap hari pukul 02.00 WIB yang memanggil `GET /api/cron/cleanup`. Endpoint ini menolak permintaan tanpa header `Authorization: Bearer <CRON_SECRET>`, lalu menjalankan `cleanup_agent_data`: riwayat pesan dan ID pesan masuk dihapus setelah 30 hari, trace setelah 90 hari, dan sesi yang kedaluwarsa. Schedule hanya berjalan di deployment production. Untuk menjalankannya manual:
@@ -91,7 +129,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
 ## Tes
 
 ```bash
-npm test                 # Vitest: engine agen, adapter, route API
+npm test                 # Vitest + pytest pipeline harga (SKIP_PYTEST=1 untuk melewati pytest)
 npx tsc --noEmit && npm run lint && npm run build
 supabase start && supabase db reset && supabase test db   # tes pgTAP, butuh Docker + Supabase CLI
 ```
@@ -101,4 +139,4 @@ supabase start && supabase db reset && supabase test db   # tes pgTAP, butuh Doc
 - Pesanan website dan WhatsApp menaikkan progres batch yang sama.
 - Harga final ditetapkan dari tier kuantitas saat admin menutup batch. Pesanan dibayar setelah batch mencapai minimum; batch gagal tidak ditagih.
 - Admin mencatat status pembayaran dan pengambilan/pengiriman secara manual. Jadwal batch juga dibuat manual.
-- AI, pemrosesan pembayaran, dan pengaturan logistik belum aktif.
+- Pemrosesan pembayaran dan pengaturan logistik belum aktif.
