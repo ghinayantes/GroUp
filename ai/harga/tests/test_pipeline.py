@@ -1,5 +1,6 @@
 """Test pipeline. Data harian di sini SINTETIS, hanya untuk membuktikan kode mode harian
 berjalan; tidak pernah dipakai sebagai hasil prediksi."""
+import json
 import sys
 from pathlib import Path
 
@@ -130,14 +131,25 @@ def test_end_to_end_harian_sintetis(tmp_path):
     assert (tmp_path / "out" / "model_harian_h1.joblib").exists()
 
 
-def test_bersihkan_konversi_minyak_liter():
+def test_bersihkan_minyak_liter_tetap_rp_per_liter():
     df = pd.DataFrame({"tanggal": pd.to_datetime(["2026-05-01"]), "komoditas": ["minyakita"],
                        "satuan": ["liter"], "harga": [15700.0], "jenis_harga": ["eceran"],
                        "sumber_id": ["sp2kp_databoks"]})
     out = bersihkan(df)
-    assert out["satuan"].iloc[0] == "kg"
-    assert out["harga"].iloc[0] == pytest.approx(15700 / C.DENSITAS_MINYAK_KG_PER_L)
-    assert out["harga_asli"].iloc[0] == 15700
+    assert out["satuan"].iloc[0] == "liter"
+    assert out["harga"].iloc[0] == 15700
+    assert not hasattr(C, "DENSITAS_MINYAK_KG_PER_L")
+
+
+def test_output_mencantumkan_satuan_sumber(tmp_path):
+    p = run(CSV_ASLI, out_dir=tmp_path, paksa=True)["prediksi"]
+    assert "satuan" in p.columns
+    satuan = dict(zip(p["komoditas"], p["satuan"]))
+    # PIHPS menerbitkan minyak goreng curah per kg; satuan sumber dipertahankan tanpa konversi densitas.
+    assert satuan["minyak_goreng_curah"] == "kg"
+    assert set(satuan.values()) <= {"kg", "liter"}
+    js = json.loads((tmp_path / "prediksi.json").read_text(encoding="utf-8"))
+    assert all("satuan" in row for row in js["prediksi"])
 
 
 # --- Aturan status, margin model, lebar interval (perbaikan Nov 2026) ---

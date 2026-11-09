@@ -1,4 +1,4 @@
-"""Cleaning: nama kanonik, seri turunan, satuan, agregasi, flag (tanpa membuang baris)."""
+"""Cleaning: nama kanonik, seri turunan, agregasi, flag (tanpa membuang baris). Satuan sumber dipertahankan."""
 from __future__ import annotations
 
 import numpy as np
@@ -48,26 +48,13 @@ def tambah_seri_turunan(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def samakan_satuan(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-    df["harga_asli"] = df["harga"]
-    df["satuan_asli"] = df["satuan"]
-    m = (df["satuan"] == "liter") & df["komoditas"].str.startswith("minyak")
-    df.loc[m, "harga"] = df.loc[m, "harga"] / C.DENSITAS_MINYAK_KG_PER_L
-    df.loc[m, "satuan"] = "kg"
-    df["konversi_satuan"] = m
-    return df
-
-
 def agregasi(df: pd.DataFrame) -> pd.DataFrame:
     """Satu baris per (tanggal, komoditas, sumber, satuan, jenis_harga):
     median + min + max + n_obs (untuk berita multi-pasar)."""
     kunci = ["tanggal", "komoditas", "sumber_id", "satuan", "jenis_harga"]
     out = df.groupby(kunci, as_index=False).agg(
         harga=("harga", "median"), harga_min=("harga", "min"), harga_max=("harga", "max"),
-        n_obs=("harga", "size"), harga_asli=("harga_asli", "median"),
-        satuan_asli=("satuan_asli", "first"), turunan=("turunan", "any"),
-        konversi_satuan=("konversi_satuan", "any"),
+        n_obs=("harga", "size"), turunan=("turunan", "any"),
     )
     out["level"] = out["sumber_id"].map(C.LEVEL_SUMBER).fillna("tidak_diketahui")
     out["is_eceran"] = out["jenis_harga"].eq("eceran")
@@ -111,7 +98,6 @@ def bersihkan(df_raw: pd.DataFrame) -> pd.DataFrame:
     hanya alias identik yang dilebur; sisanya diberi flag."""
     df = kanonikkan_nama(df_raw)
     df = tambah_seri_turunan(df)
-    df = samakan_satuan(df)
     df = agregasi(df)
     return tandai_flag(df)
 

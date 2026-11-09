@@ -17,7 +17,7 @@ from .features import ke_harian
 from .load import deteksi_frekuensi, load_csv
 from .models import backtest_bulanan, buat_model, interval_empiris, pilih_model
 
-KOLOM_OUTPUT = ["komoditas", "horizon", "tanggal_terakhir", "harga_terakhir", "tanggal_target",
+KOLOM_OUTPUT = ["komoditas", "horizon", "tanggal_terakhir", "harga_terakhir", "satuan", "tanggal_target",
                 "prediksi", "batas_bawah", "batas_atas", "perubahan_pct", "status", "saran",
                 "model", "mape_validasi", "n_titik", "sumber", "catatan"]
 
@@ -80,11 +80,11 @@ def _catatan(tanggal_target: pd.Timestamp, frozen_terakhir: bool, freq: str) -> 
     return "; ".join(c)
 
 
-def _baris(kom, horizon, t_last, h_last, t_target, pred, lo, hi, model, mape, n, frozen, freq):
+def _baris(kom, horizon, t_last, h_last, t_target, pred, lo, hi, model, mape, n, frozen, freq, satuan):
     lebar = (hi - lo) / pred if pred else np.nan
     st = status_dari(h_last, pred, lo, hi, mape)
     return {"komoditas": kom, "horizon": horizon, "tanggal_terakhir": t_last.date(),
-            "harga_terakhir": round(h_last), "tanggal_target": t_target.date(),
+            "harga_terakhir": round(h_last), "satuan": satuan, "tanggal_target": t_target.date(),
             "prediksi": round(pred), "batas_bawah": round(lo) if lo == lo else np.nan,
             "batas_atas": round(hi) if hi == hi else np.nan,
             "perubahan_pct": round((pred / h_last - 1) * 100, 2), "status": st,
@@ -92,6 +92,13 @@ def _baris(kom, horizon, t_last, h_last, t_target, pred, lo, hi, model, mape, n,
             "mape_validasi": round(mape, 2) if mape == mape else np.nan, "n_titik": int(n),
             "sumber": f"{C.SUMBER_TARGET} ({C.LEVEL_SUMBER.get(C.SUMBER_TARGET)})",
             "catatan": _catatan(t_target, frozen, freq)}
+
+
+def _satuan_target(clean, kom) -> str:
+    satuan = clean[(clean["sumber_id"] == C.SUMBER_TARGET) & (clean["komoditas"] == kom)]["satuan"].unique()
+    if len(satuan) != 1:
+        raise ValueError(f"{kom}: satuan sumber {C.SUMBER_TARGET} harus tunggal, dapat {list(satuan)}")
+    return str(satuan[0])
 
 
 def _frozen_terakhir(clean, kom) -> bool:
@@ -125,7 +132,8 @@ def jalankan_bulanan(clean: pd.DataFrame, out_dir: Path):
         t_target = (t_last + pd.offsets.MonthBegin(1)).normalize()
         mape = float(tabel.query("komoditas == @kom and model == @nama")["MAPE"].iloc[0])
         rows.append(_baris(kom, "1_bulan", t_last, float(s.iloc[-1]), t_target, pred, lo, hi,
-                           nama, mape, len(s), _frozen_terakhir(clean, kom), "bulanan"))
+                           nama, mape, len(s), _frozen_terakhir(clean, kom), "bulanan",
+                           _satuan_target(clean, kom)))
         joblib.dump({"model": m, "komoditas": kom, "sumber": C.SUMBER_TARGET, "mode": "bulanan",
                      "dilatih_sampai": str(t_last.date()), "residual_wf": residual[(kom, nama)]},
                     out_dir / f"model_bulanan_{kom}.joblib")
@@ -152,7 +160,8 @@ def jalankan_mode_harian(clean: pd.DataFrame, out_dir: Path):
             n = int(daily[(daily["komoditas"] == kom) & daily["harga"].notna()].shape[0])
             rows.append(_baris(kom, f"{h}_hari", p["tanggal"], float(p["harga"]),
                                p["tanggal"] + pd.Timedelta(days=h), float(p["prediksi"]), lo, hi,
-                               r["terpilih"], mape, n, _frozen_terakhir(clean, kom), "harian"))
+                               r["terpilih"], mape, n, _frozen_terakhir(clean, kom), "harian",
+                               _satuan_target(clean, kom)))
         joblib.dump({"model": r["model"], "terpilih": r["terpilih"], "kategori": r["kategori"],
                      "horizon": h, "mode": "harian"}, out_dir / f"model_harian_h{h}.joblib")
     return pd.DataFrame(rows, columns=KOLOM_OUTPUT), {"hasil": hasil, "daily": daily}

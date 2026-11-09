@@ -1,6 +1,6 @@
-# ML — Prediksi Harga Bahan Baku
+# Harga pasar bahan baku (PIHPS)
 
-Prediksi harga bulan depan untuk 13 bahan baku UMKM kuliner Kota Bandung (seri PIHPS), sebagai pendukung keputusan patungan GroUp: kapan sebaiknya ikut batch dan apakah stok perlu dibeli lebih awal.
+Harga pasar terkini dan status volatilitas untuk 13 bahan baku UMKM kuliner Kota Bandung (seri PIHPS), dengan prediksi harga bulan depan sebagai pelengkap. Dipakai GroUp untuk membandingkan harga batch dengan harga pasar.
 
 ## Struktur
 
@@ -34,6 +34,17 @@ Notebook bisa dijalankan dari `ai/harga/` atau `ai/harga/notebooks/`; pilih kern
 
 ## Output untuk aplikasi
 
-`output/prediksi.json` berisi `mode`, `dibuat`, dan daftar `prediksi` (kolom sama dengan `prediksi.csv`): `komoditas`, `harga_terakhir`, `prediksi`, `batas_bawah`, `batas_atas`, `status` (`STABIL`/`NAIK`/`TURUN`/`TIDAK PASTI`/`BERGEJOLAK`), `saran`, serta metadata `model`, `mape_validasi`, `n_titik`, `sumber`, `catatan`.
+`output/prediksi.json` berisi `mode`, `dibuat`, dan daftar `prediksi` (kolom sama dengan `prediksi.csv`): `komoditas`, `tanggal_terakhir`, `harga_terakhir`, `satuan`, `prediksi`, `batas_bawah`, `batas_atas`, `status` (`STABIL`/`NAIK`/`TURUN`/`TIDAK PASTI`/`BERGEJOLAK`), `saran`, serta metadata `model`, `mape_validasi`, `n_titik`, `sumber`, `catatan`.
 
-Data saat ini bulanan (11 titik), jadi prediksi = harga awal bulan depan. Bila CSV diganti data harian PIHPS, pipeline otomatis beralih ke mode harian (LightGBM vs baseline, horizon 1 dan 7 hari).
+- **Satuan.** Harga dipakai dalam satuan sumber, tanpa konversi densitas. PIHPS menerbitkan minyak goreng curah per **kg**, jadi `satuan` minyak di output adalah `kg`. Aplikasi wajib membandingkan harga hanya bila satuannya sama dengan satuan batch.
+- **Dipakai aplikasi.** `lib/agent/adapters/market-price.ts` membaca file ini untuk tool `harga_pasar`: `harga_terakhir` sebagai harga pasar terkini (Kota Bandung, PIHPS) beserta tanggalnya. Field prediksi belum diekspos karena `MarketPricePort` belum punya field-nya.
+
+## Cara membaca hasilnya
+
+Data saat ini bulanan (11 titik per komoditas), jadi `prediksi` = harga awal bulan depan dan MAPE dihitung dari ±7 titik uji walk-forward. Model non-naive hanya dipilih bila menang ≥10% atas naive; pada data sekarang 11 dari 13 komoditas memilih **naive** (prediksi = harga terakhir). Sebutlah fitur ini **"harga pasar terkini + status volatilitas"**, dengan prediksi sebagai pelengkap, bukan "ML memprediksi harga".
+
+Mode harian (LightGBM vs baseline, horizon 1 dan 7 hari) aktif otomatis bila CSV berisi data harian, tetapi **baru diuji dengan data sintetis** (`tests/test_pipeline.py`), belum dengan data PIHPS harian asli.
+
+## Tes
+
+`npm test` di root repo ikut menjalankan `pytest` folder ini lewat `ai/harga/pytest.test.ts` (memakai `ai/harga/.venv` bila ada, selain itu `python` di PATH). Tanpa Python + dependensi, tes itu gagal dengan pesan cara setup. Lewati sementara dengan `SKIP_PYTEST=1 npm test`.

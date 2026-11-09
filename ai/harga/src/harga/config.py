@@ -57,9 +57,8 @@ LEVEL_SUMBER = {
 }
 
 # --- Satuan ---
-# ASUMSI (bukan dari data): densitas minyak goreng sawit ~0,9 kg/L.
-# Harga Rp/L dikonversi ke Rp/kg: harga_kg = harga_liter / DENSITAS.
-DENSITAS_MINYAK_KG_PER_L = 0.9
+# Harga dipakai dalam satuan sumber (tanpa konversi densitas). PIHPS menerbitkan minyak goreng per kg,
+# SP2KP per liter; satuan ikut ditulis di output supaya aplikasi tidak membandingkan satuan berbeda.
 
 # --- Flag kualitas data ---
 FROZEN_MIN_RUN = 3          # >=3 titik berturut-turut bernilai sama -> is_frozen
