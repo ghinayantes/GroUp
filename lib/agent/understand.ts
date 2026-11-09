@@ -114,6 +114,7 @@ async function askStage2(
     };
   } catch (error) {
     console.error("Stage-2 agent failed", error instanceof Error ? error.name : "unknown error");
-    return understood({ type: "menu" }, "fallback", score, slots);
+    const fallback = understood({ type: "menu" }, "fallback", score, slots);
+    return { ...fallback, trace: { ...fallback.trace, model: stage2.model } };
   }
 }

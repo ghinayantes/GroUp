@@ -248,7 +248,10 @@ describe("engine pesan non-teks (fokus review #4)", () => {
 
 describe("engine fallback dan pencatatan", () => {
   it("teks bebas tanpa router membalas menu dengan trace fallback", async () => {
-    const { engine } = setup();
+    const { deps } = setup();
+    deps.classifier = null;
+    deps.stage2 = null;
+    const engine = createEngine(deps);
     const { replies, trace } = await engine.handle(textMsg("mau pesan cabai 5 kg dong"));
 
     expect(body(replies)).toBe(menuText());

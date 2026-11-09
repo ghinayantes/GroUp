@@ -99,9 +99,18 @@ describe("memory adapter", () => {
     await deps.traces.record("whatsapp", hash, trace);
     now = new Date(FIXTURE_NOW.getTime() + 3_600_000);
     await deps.traces.record("whatsapp", hash, trace);
-    await deps.traces.record("whatsapp", hash, { ...trace, stage: "stage1" });
+    await deps.traces.record("whatsapp", hash, { ...trace, stage: "stage1", model: null });
     expect(await deps.traces.countStage2Since(hash, FIXTURE_NOW)).toBe(2);
     expect(await deps.traces.countStage2Since(hash, now)).toBe(1);
+  });
+
+  it("countStage2Since ikut menghitung fallback yang sudah memanggil model, bukan fallback tanpa model", async () => {
+    const deps = createMemoryDeps({ batches: FIXTURE_BATCHES, now: FIXTURE_NOW });
+    const trace = { stage: "fallback" as const, intent: null, confidence: null, action: "menu" as const, model: "m", inputTokens: null, outputTokens: null, latencyMs: 1 };
+    const hash = senderHash("whatsapp", "6281");
+    await deps.traces.record("whatsapp", hash, trace);
+    await deps.traces.record("whatsapp", hash, { ...trace, model: null });
+    expect(await deps.traces.countStage2Since(hash, FIXTURE_NOW)).toBe(1);
   });
 
   it("semua pembacaan waktu mengikuti deps.now terbaru", async () => {

@@ -269,13 +269,14 @@ describe("supabase adapter: traces", () => {
     expect(JSON.stringify(row)).not.toContain("6281");
   });
 
-  it("countStage2Since menghitung trace stage2 sejak waktu tertentu", async () => {
+  it("countStage2Since menghitung trace yang memanggil model sejak waktu tertentu", async () => {
     fakeSupabase.respond(() => ({ count: 7 }));
     const since = new Date("2026-11-06T01:00:00.000Z");
     expect(await createSupabaseDeps().traces.countStage2Since("abc", since)).toBe(7);
     const call = only((c) => c.table === "agent_traces");
     expect(fakeSupabase.op(call, "select")).toEqual([["id", { count: "exact", head: true }]]);
-    expect(eqs(call)).toEqual({ sender_hash: "abc", stage: "stage2" });
+    expect(eqs(call)).toEqual({ sender_hash: "abc" });
+    expect(fakeSupabase.op(call, "not")).toEqual([["model", "is", null]]);
     expect(fakeSupabase.op(call, "gte")).toEqual([["created_at", since.toISOString()]]);
   });
 });

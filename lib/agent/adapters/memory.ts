@@ -159,7 +159,7 @@ export function createMemoryDeps(init: MemoryInit): MemoryDeps {
         state.traces.push({ channel, senderHash, trace, at: deps.now() });
       },
       async countStage2Since(senderHash, since) {
-        return state.traces.filter((t) => t.senderHash === senderHash && t.trace.stage === "stage2" && t.at.getTime() >= since.getTime()).length;
+        return state.traces.filter((t) => t.senderHash === senderHash && t.trace.model !== null && t.at.getTime() >= since.getTime()).length;
       },
     },
     classifier: null,

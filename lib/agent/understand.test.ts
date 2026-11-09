@@ -134,7 +134,7 @@ describe("understandFreeText tahap 2", () => {
     const msg = message("rahasia 081234567890");
     const result = await understandFreeText(msg, null, await context(msg));
     expect(result.action).toEqual({ type: "menu" });
-    expect(result.trace).toMatchObject({ stage: "fallback", action: "menu", model: null });
+    expect(result.trace).toMatchObject({ stage: "fallback", action: "menu", model: "fake/model" });
     expect(JSON.stringify(error.mock.calls)).not.toContain("rahasia");
     error.mockRestore();
   });
@@ -165,7 +165,7 @@ describe("understandFreeText tahap 2", () => {
     const msg = message("pesananku apa aja");
     const result = await understandFreeText(msg, null, await context(msg));
     expect(result.action).toEqual({ type: "menu" });
-    expect(result.trace.stage).toBe("fallback");
+    expect(result.trace).toMatchObject({ stage: "fallback", model: null });
     expect(stage2.propose).not.toHaveBeenCalled();
   });
 
@@ -200,6 +200,16 @@ describe("understandFreeText tahap 2", () => {
 });
 
 describe("engine dengan understandFreeText", () => {
+  it("panggilan tahap 2 yang gagal ikut dihitung batas 20 per jam", async () => {
+    const stage2 = fakeStage2(new Error("timeout"));
+    const { deps } = await setup({ stage2 });
+    const engine = createEngine(deps);
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (let i = 0; i < 21; i++) await engine.handle(message("pesananku apa aja"));
+    expect(stage2.propose).toHaveBeenCalledTimes(20);
+    error.mockRestore();
+  });
+
   it("stage2 mengusulkan confirm_join → hanya tombol, writes kosong sampai ORDER_CONFIRM", async () => {
     const { deps } = await setup({ stage2: fakeStage2({ action: { type: "confirm_join", batchId: CABAI.id, quantity: 1000 } }) });
     const engine = createEngine(deps);

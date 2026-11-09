@@ -154,7 +154,7 @@ export function createSupabaseDeps(): SupabaseDeps {
           .from("agent_traces")
           .select("id", { count: "exact", head: true })
           .eq("sender_hash", senderHash)
-          .eq("stage", "stage2")
+          .not("model", "is", null)
           .gte("created_at", since.toISOString());
         if (error) throw new Error("Trace agen tidak dapat dimuat.");
         return count ?? 0;
