@@ -1,0 +1,1 @@
+Model acak berukuran 0,5 MB dari `hf-internal-testing/tiny-random-BertForSequenceClassification` (bobot fp32 disimpan dengan nama `model_quantized.onnx`), label diganti ke dua intent. Hanya untuk menguji jalur pemuatan transformers.js tanpa jaringan; prediksinya tidak bermakna.
