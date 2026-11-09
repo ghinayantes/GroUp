@@ -15,7 +15,7 @@ const results: Result[] = existsSync(DIR)
   : [];
 const latest = (suite: string, mode: string) => results.filter((r) => r.suite === suite && r.mode === mode && r.status === "ok").at(-1);
 
-const pricing = JSON.parse(readFileSync("evals/pricing.json", "utf8")) as { checkedAt: string; models: Record<string, Pricing>; comparison: string };
+const pricing = JSON.parse(readFileSync("evals/pricing.json", "utf8")) as { checkedAt: string; source: string; models: Record<string, Pricing>; comparison: string };
 
 const pct = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `${(v * 100).toFixed(1)}%`);
 const num = (v: number | null | undefined, unit = "") => (v === null || v === undefined ? "—" : `${Math.round(v * 10) / 10}${unit}`);
@@ -90,7 +90,7 @@ ${extract ? `Baris: ${extract.metrics!.rows}. Batch ${pct(extract.metrics!.batch
 
 ${skipped.length ? [...new Set(skipped)].join("\n") : "Tidak ada."}
 
-Harga token dicek ${pricing.checkedAt} dari katalog AI Gateway (\`evals/pricing.json\`). Model tier gratis biayanya $0; kolom biaya di atas adalah perkiraan bila memakai ${pricing.comparison}.
+Harga token dicek ${pricing.checkedAt} (\`evals/pricing.json\`: ${pricing.source}). Production memakai tier gratis, jadi biaya nyatanya $0; kolom biaya di atas adalah perkiraan bila memakai ${pricing.comparison} di tier berbayar.
 `;
 
 writeFileSync("evals/REPORT.md", report);
