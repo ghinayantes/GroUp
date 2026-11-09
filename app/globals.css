@@ -429,6 +429,7 @@ button.pill{cursor:pointer}
 .chat-trace dt{color:var(--muted)}
 .chat-trace dd{margin:0;overflow-wrap:anywhere}
 .chat-trace code{font-size:12px}
+.info-card code{overflow-wrap:anywhere}
 .chat-trace-empty{font-size:13px;color:var(--muted)}
 .chat-picker{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .chat-picker button{width:100%;display:grid;gap:2px;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff;cursor:pointer}
