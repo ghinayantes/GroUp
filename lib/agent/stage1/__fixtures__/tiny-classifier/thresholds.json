@@ -1,0 +1,15 @@
+{
+  "modelVersion": "tiny-test",
+  "baseModel": "hf-internal-testing/tiny-random-BertForSequenceClassification",
+  "thresholds": {
+    "pesan_baru": 0.4,
+    "ubah_pesanan": 1.01,
+    "batal_pesanan": 1.01,
+    "cek_pesanan": 1.01,
+    "tanya_info": 1.01,
+    "tanya_harga_pasar": 1.01,
+    "catat_minat": 1.01,
+    "sapaan": 0.9,
+    "di_luar_topik": 1.01
+  }
+}

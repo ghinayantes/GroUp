@@ -12,9 +12,11 @@
     "test:watch": "vitest",
     "data:generate": "tsx --conditions=react-server --env-file-if-exists=.env.local ai/data/generate_synthetic.ts",
     "data:build": "tsx ai/data/build_splits.ts",
-    "data:check": "tsx ai/data/check.ts"
+    "data:check": "tsx ai/data/check.ts",
+    "model:calibrate": "tsx --conditions=react-server ai/data/calibrate.ts"
   },
   "dependencies": {
+    "@huggingface/transformers": "4.3.2",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
     "ai": "7.0.166",
@@ -30,6 +32,7 @@
     "@vercel/config": "0.14.1",
     "eslint": "9.38.0",
     "eslint-config-next": "16.4.3",
+    "server-only": "0.0.1",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
     "vitest": "5.1.0"
