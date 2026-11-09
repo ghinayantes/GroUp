@@ -13,7 +13,10 @@ const MAX_STEPS = 5;
 const MAX_OUTPUT_TOKENS = 600;
 const RETRY_MESSAGE = 'Balasan tadi bukan JSON yang valid. Balas ulang HANYA dengan satu objek JSON {"action": {...}} sesuai aturan.';
 
-type Generated = Awaited<ReturnType<typeof generateText>>;
+type Run = {
+  steps: { toolResults: { toolName: string; output: unknown }[] }[];
+  totalUsage: { inputTokens: number | undefined; outputTokens: number | undefined };
+};
 
 function parseJsonAction(text: string): ProposedAction | null {
   const start = text.indexOf("{");
@@ -44,7 +47,7 @@ export function createStage2Agent({ model, outputMode, timeoutMs = 12_000, langu
         maxOutputTokens: MAX_OUTPUT_TOKENS,
         abortSignal: signal,
       };
-      const runs: Generated[] = [];
+      const runs: Run[] = [];
       let action: ProposedAction | null;
 
       if (outputMode === "native") {
