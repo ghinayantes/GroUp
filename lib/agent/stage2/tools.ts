@@ -4,6 +4,14 @@ import type { Batch } from "@/lib/batch";
 import { shortCode } from "../copy";
 import { matchBatches } from "../extract";
 import type { ToolContext } from "../ports";
+import { MONTHS } from "./grounding";
+
+export function formatTanggal(isoDate: string): string | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate);
+  const month = match && MONTHS[Number(match[2]) - 1];
+  if (!match || !month) return null;
+  return `${Number(match[3])} ${month[0].toUpperCase()}${month.slice(1)} ${match[1]}`;
+}
 
 const summary = (batch: Batch) => ({
   id: batch.id,
@@ -72,6 +80,7 @@ export function buildTools(ctx: ToolContext) {
           satuan: price.unit,
           sumber: price.source,
           tanggal: price.observedAt,
+          tanggal_teks: formatTanggal(price.observedAt),
         };
       },
     }),
