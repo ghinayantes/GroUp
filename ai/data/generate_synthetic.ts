@@ -6,6 +6,7 @@ import { INTENTS, type Intent } from "@/lib/agent/types";
 import { FIXTURE_BATCHES } from "@/test/fixtures/batches";
 import { INTENT_DEFINITIONS } from "./intents";
 import { readJsonl, writeJsonl, type IntentRow } from "./rows";
+import { selectStage2Model, stage2OutputMode } from "@/lib/agent/model-provider";
 
 const BATCH_SIZE = 25;
 const THROTTLE_MS = 3000;
@@ -36,8 +37,10 @@ const { values } = parseArgs({
 });
 const perIntent = Number(values["per-intent"]);
 const out = values.out!;
-const model = process.env.AGENT_STAGE2_MODEL ?? "nvidia/nemotron-3.5-lightning-free";
-const outputMode = process.env.AGENT_STAGE2_OUTPUT_MODE ?? "json-text";
+const selected = selectStage2Model(process.env);
+if (!selected) throw new Error("Konfigurasi model belum lengkap; lihat peringatan di atas.");
+const { model } = selected;
+const outputMode = stage2OutputMode(process.env);
 const materials = [...FIXTURE_BATCHES.map((batch) => batch.name), ...EXTRA_MATERIALS];
 const Messages = z.array(z.string().min(2).max(400));
 

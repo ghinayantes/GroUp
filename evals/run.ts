@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { loadIntentClassifier } from "@/lib/agent/stage1/classifier";
 import { createHash } from "node:crypto";
-import { createStage2Agent, type Stage2OutputMode } from "@/lib/agent/stage2/agent";
+import { createStage2FromEnv, stage2OutputMode } from "@/lib/agent/model-provider";
 import { STAGE2_JSON_FORMAT, STAGE2_SYSTEM } from "@/lib/agent/stage2/prompt";
 import { withCache, type CachedAgent } from "./cache";
 import { loadExtract, loadIntentTest, loadScenarios, type Loaded } from "./datasets";
@@ -22,14 +22,16 @@ if (!MODES.includes(mode)) throw new Error(`--mode harus salah satu dari ${MODES
 const suites: Suite[] = values.suite === "all" ? [...SUITES] : [values.suite as Suite];
 if (!suites.every((s) => SUITES.includes(s))) throw new Error(`--suite harus all atau salah satu dari ${SUITES.join(", ")}`);
 
-const model = process.env.AGENT_STAGE2_MODEL ?? "nvidia/nemotron-3.5-lightning-free";
-const outputMode = (process.env.AGENT_STAGE2_OUTPUT_MODE ?? "json-text") as Stage2OutputMode;
+const outputMode = stage2OutputMode(process.env);
 const classifier = mode === "router" ? await loadIntentClassifier() : null;
-const stage2: CachedAgent | null = mode === "fixed-only" ? null : withCache(createStage2Agent({ model, outputMode }), {
-        refresh: values.refresh,
-        salt: `${outputMode}:${createHash("sha256").update(STAGE2_SYSTEM + STAGE2_JSON_FORMAT).digest("hex")}`,
-      });
-const credentials = Boolean(process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN);
+const baseAgent = mode === "fixed-only" ? null : createStage2FromEnv(process.env);
+if (mode !== "fixed-only" && !baseAgent) throw new Error("Konfigurasi tahap 2 belum lengkap; lihat peringatan di atas.");
+const stage2: CachedAgent | null = baseAgent && withCache(baseAgent, {
+  refresh: values.refresh,
+  salt: `${outputMode}:${createHash("sha256").update(STAGE2_SYSTEM + STAGE2_JSON_FORMAT).digest("hex")}`,
+});
+const gatewayWithoutCredentials =
+  (process.env.AGENT_STAGE2_PROVIDER || "gateway") === "gateway" && !process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN;
 
 let commit = "unknown";
 try {
@@ -40,7 +42,7 @@ const date = new Date().toISOString().slice(0, 10);
 const dataset = <T>(loaded: Loaded<T>) => ({ path: loaded.path, rows: loaded.rows.length, missing: loaded.missing });
 
 async function runSuite(suite: Suite) {
-  const meta = { suite, mode, date, commit, stage2Model: stage2 ? model : null, outputMode: stage2 ? outputMode : null, classifierVersion: classifier?.version ?? null };
+  const meta = { suite, mode, date, commit, stage2Model: stage2?.model ?? null, outputMode: stage2 ? outputMode : null, classifierVersion: classifier?.version ?? null };
   if (suite === "intent") {
     const data = loadIntentTest();
     if (data.missing) return { ...meta, status: "skipped", reason: `${data.path} belum ada`, dataset: dataset(data) };
@@ -60,7 +62,7 @@ async function runSuite(suite: Suite) {
   if (!rows.length) return { ...meta, status: "skipped", reason: `${loaded.map((d) => d.path).join(" dan ")} belum ada atau kosong`, datasets };
   const before = stage2 ? { ...stage2.stats } : null;
   const metrics = await runScenarioSuite(rows, { classifier, stage2 });
-  const cache = stage2 && before ? { hits: stage2.stats.hits - before.hits, misses: stage2.stats.misses - before.misses, credentials } : null;
+  const cache = stage2 && before ? { hits: stage2.stats.hits - before.hits, misses: stage2.stats.misses - before.misses, credentials: !gatewayWithoutCredentials } : null;
   return { ...meta, status: "ok", datasets, cache, metrics: suite === "grounding" ? { grounding: metrics.grounding, efficiency: metrics.efficiency } : metrics };
 }
 
@@ -71,6 +73,6 @@ for (const suite of suites) {
   writeFileSync(file, JSON.stringify(result, null, 2) + "\n");
   console.log(`${suite} (${mode}): ${result.status}${"reason" in result ? ` — ${result.reason}` : ""} → ${file}`);
 }
-if (stage2 && !credentials && stage2.stats.misses > 0) {
+if (stage2 && gatewayWithoutCredentials && stage2.stats.misses > 0) {
   console.warn(`Peringatan: ${stage2.stats.misses} panggilan tahap 2 tanpa AI_GATEWAY_API_KEY/VERCEL_OIDC_TOKEN; hasilnya fallback menu.`);
 }
