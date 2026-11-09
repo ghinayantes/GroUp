@@ -13,7 +13,7 @@ Prediksi harga bulan depan untuk 13 bahan baku UMKM kuliner Kota Bandung (seri P
 
 ## Setup
 
-Butuh Python 3.13. Dari folder `ml/`:
+Butuh Python 3.13. Dari folder `ai/harga/`:
 
 ```powershell
 python -m venv .venv
@@ -30,7 +30,7 @@ python -m pytest -q tests  # test
 jupyter nbconvert --to notebook --execute --inplace notebooks/data_train.ipynb
 ```
 
-Notebook bisa dijalankan dari `ml/` atau `ml/notebooks/`; pilih kernel dari `.venv`.
+Notebook bisa dijalankan dari `ai/harga/` atau `ai/harga/notebooks/`; pilih kernel dari `.venv`.
 
 ## Output untuk aplikasi
 
