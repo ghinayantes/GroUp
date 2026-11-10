@@ -17,9 +17,9 @@ select results_eq(
 select is_empty(
   $$ select 1 from pg_policies
      where schemaname = 'storage' and tablename = 'objects'
-       and roles && array['anon','authenticated']::name[]
+       and roles && array['public','anon','authenticated']::name[]
        and cmd in ('INSERT','UPDATE','DELETE','ALL') $$,
-  'anon and authenticated have no write policies on storage.objects'
+  'public, anon and authenticated have no write policies on storage.objects'
 );
 
 select * from finish();
