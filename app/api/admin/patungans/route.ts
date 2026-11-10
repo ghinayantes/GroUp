@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { guardAdmin, readJson } from "@/lib/admin-route";
-import { isUuid } from "@/lib/orders";
+import { isUuid } from "@/lib/uuid";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 
 const text = (value: unknown, max: number) => (typeof value === "string" ? value.trim().slice(0, max) : "");

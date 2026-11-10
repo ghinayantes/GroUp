@@ -5,13 +5,13 @@ import {
   INVALID_QUANTITY_MESSAGE,
   ORDER_NOT_FOUND_MESSAGE,
   createOrder,
-  isUuid,
   listOpenBatches,
   listOrdersForSender,
   manageOrder,
   recordDemandInterest,
 } from "@/lib/orders";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/uuid";
 import type { EngineDeps, HistoryEntry } from "../ports";
 import type { AgentSession, ProposedAction } from "../types";
 

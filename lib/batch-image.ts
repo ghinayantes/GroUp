@@ -1,4 +1,4 @@
-import { isUuid } from "@/lib/orders";
+import { isUuid } from "@/lib/uuid";
 
 export const BATCH_IMAGE_BUCKET = "batch-images";
 export const MAX_IMAGE_SIDE = 1600;

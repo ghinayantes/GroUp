@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { isUuid } from "@/lib/orders";
+import { isUuid } from "@/lib/uuid";
 import { hasSupabaseSecret, isCurrentUserAdmin } from "@/lib/supabase/server";
 
 /** Mengembalikan respons error bila permintaan bukan dari admin; null bila boleh lanjut. */

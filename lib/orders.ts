@@ -1,13 +1,12 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { isValidQuantity, type Batch, type BatchStatus } from "@/lib/batch";
+import { isUuid } from "@/lib/uuid";
 import { demoBatches } from "@/lib/demo-data";
 import { createSupabaseAdminClient, hasSupabaseSecret } from "@/lib/supabase/server";
 import type { Channel, Frequency } from "@/lib/agent/types";
 
 const hashCode = (value: string) => createHash("sha256").update(value.trim()).digest("hex");
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-export const isUuid = (value: string) => uuidPattern.test(value);
 export const normalizePhone = (phone: string) => phone.replace(/[\s()-]/g, "");
 const senderPhone = (channel: "website" | Channel, value: string) => (channel === "simulator" ? value : normalizePhone(value));
 
