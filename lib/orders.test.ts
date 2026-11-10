@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeSupabase } from "@/test/fake-supabase";
-import { createOrder, listOrdersForSender, manageOrder, purgeSimulatorOrders } from "./orders";
+import { createOrder, listOrdersForBuyer, listOrdersForSender, manageOrder, purgeSimulatorOrders } from "./orders";
 
 vi.mock("@/lib/supabase/server", async () => {
   const { fakeSupabase } = await import("@/test/fake-supabase");
@@ -47,10 +47,31 @@ describe("lib/orders", () => {
   });
 
   it("manageOrder simulator memakai sender key apa adanya, website tetap lewat kode", async () => {
-    await manageOrder("order-1", { channel: "simulator", key: "sim-0123456789abcdef" }, null, "cancel", null);
-    await manageOrder("order-1", null, "kode", "cancel", null);
-    expect(fakeSupabase.calls[0].args).toMatchObject({ p_phone: "sim-0123456789abcdef", p_management_code_hash: null });
-    expect(fakeSupabase.calls[1].args).toMatchObject({ p_phone: null, p_management_code_hash: expect.any(String) });
+    await manageOrder("order-1", { sender: { channel: "simulator", key: "sim-0123456789abcdef" } }, "cancel", null);
+    await manageOrder("order-1", { code: "kode" }, "cancel", null);
+    expect(fakeSupabase.calls[0].args).toMatchObject({ p_phone: "sim-0123456789abcdef", p_management_code_hash: null, p_buyer_user_id: null });
+    expect(fakeSupabase.calls[1].args).toMatchObject({ p_phone: null, p_management_code_hash: expect.any(String), p_buyer_user_id: null });
+  });
+
+  it("manageOrder pembeli login hanya mengirim buyer user id", async () => {
+    await manageOrder("order-1", { buyerUserId: "user-1" }, "update", 4);
+    expect(fakeSupabase.calls[0].args).toMatchObject({ p_phone: null, p_management_code_hash: null, p_buyer_user_id: "user-1", p_quantity: 4 });
+  });
+
+  it("createOrder website meneruskan buyer user id, kanal agen tidak", async () => {
+    fakeSupabase.respond(() => ({ data: "order-3" }));
+    await createOrder({ groupId: BATCH_ID, customerName: "Sari", phone: "081234567890", quantity: 2, buyerUserId: "user-1" });
+    await createOrder({ groupId: BATCH_ID, customerName: "Sari", phone: "6281234567890", quantity: 2, channel: "whatsapp", buyerUserId: "user-1" });
+    expect(fakeSupabase.calls[0].args).toMatchObject({ p_buyer_user_id: "user-1" });
+    expect(fakeSupabase.calls[1].args).toMatchObject({ p_buyer_user_id: null });
+  });
+
+  it("listOrdersForBuyer hanya memfilter buyer_user_id milik user", async () => {
+    fakeSupabase.respond(() => ({ data: [] }));
+    await listOrdersForBuyer("user-1");
+    const [call] = fakeSupabase.calls;
+    expect(call.table).toBe("orders");
+    expect(fakeSupabase.op(call, "eq")).toEqual([["buyer_user_id", "user-1"]]);
   });
 
   it("purgeSimulatorOrders memanggil purge_simulator_orders dan mengembalikan jumlah", async () => {

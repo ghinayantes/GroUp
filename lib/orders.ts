@@ -22,6 +22,8 @@ export type CreateOrderInput = {
   quantity: number;
   channel?: "website" | Channel;
   providerMessageId?: string;
+  /** Pembeli yang sedang login; hanya untuk pesanan website. */
+  buyerUserId?: string | null;
 };
 
 type BatchRow = {
@@ -148,6 +150,7 @@ export async function createOrder(input: CreateOrderInput) {
     p_channel: channel,
     p_management_code_hash: code ? hashCode(code) : null,
     p_provider_message_id: input.providerMessageId ?? null,
+    p_buyer_user_id: channel === "website" ? input.buyerUserId ?? null : null,
   });
   if (error) throw new Error(rpcMessage(error.message, "Pesanan belum dapat dicatat. Coba lagi."));
   return { id: data as string, managementCode: code };
@@ -201,13 +204,13 @@ export async function updateOrderByCode(code: string, quantity: number) {
   if (!isValidQuantity(quantity)) throw new Error(INVALID_QUANTITY_MESSAGE);
   const order = await findOrderByCode(code);
   if (!order) throw new Error(ORDER_NOT_FOUND_MESSAGE);
-  await manageOrder(order.id, null, code, "update", quantity);
+  await manageOrder(order.id, { code }, "update", quantity);
 }
 
 export async function cancelOrderByCode(code: string) {
   const order = await findOrderByCode(code);
   if (!order) throw new Error(ORDER_NOT_FOUND_MESSAGE);
-  await manageOrder(order.id, null, code, "cancel", null);
+  await manageOrder(order.id, { code }, "cancel", null);
 }
 
 /** Pesanan aktif dari pengirim yang sama di kanal agen (WhatsApp atau simulator). */
@@ -221,13 +224,26 @@ export async function listOrdersForSender(channel: Channel, senderKey: string): 
   return orders.filter((order): order is ManagedOrder => Boolean(order));
 }
 
+export type OrderOwner = { sender: { channel: Channel; key: string } } | { code: string } | { buyerUserId: string };
+
+/** Pesanan website milik pembeli yang login, terbaru dulu. */
+export async function listOrdersForBuyer(userId: string): Promise<ManagedOrder[]> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.from("orders").select(orderColumns)
+    .eq("buyer_user_id", userId).order("created_at", { ascending: false }).limit(50);
+  if (error) throw new Error("Pesanan tidak dapat dimuat.");
+  const orders = await Promise.all(data.map(toManagedOrder));
+  return orders.filter((order): order is ManagedOrder => Boolean(order));
+}
+
 /** Validasi jumlah dilakukan RPC setelah cek kepemilikan dan status batch, sehingga urutan error sama dengan adapter memory. */
-export async function manageOrder(id: string, sender: { channel: Channel; key: string } | null, code: string | null, action: "update" | "cancel", quantity: number | null) {
+export async function manageOrder(id: string, owner: OrderOwner, action: "update" | "cancel", quantity: number | null) {
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.rpc("manage_group_order", {
     p_order_id: id,
-    p_phone: sender ? senderPhone(sender.channel, sender.key) : null,
-    p_management_code_hash: code ? hashCode(code) : null,
+    p_phone: "sender" in owner ? senderPhone(owner.sender.channel, owner.sender.key) : null,
+    p_management_code_hash: "code" in owner ? hashCode(owner.code) : null,
+    p_buyer_user_id: "buyerUserId" in owner ? owner.buyerUserId : null,
     p_action: action,
     p_quantity: quantity,
   });

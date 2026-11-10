@@ -54,7 +54,7 @@ export function createSupabaseDeps(): SupabaseDeps {
       },
       async manageOrder(input) {
         if (!isUuid(input.orderId)) throw new Error(ORDER_NOT_FOUND_MESSAGE);
-        await manageOrder(input.orderId, { channel: input.channel, key: input.senderKey }, null, input.action, input.action === "update" ? input.quantity : null);
+        await manageOrder(input.orderId, { sender: { channel: input.channel, key: input.senderKey } }, input.action, input.action === "update" ? input.quantity : null);
       },
       recordInterest: recordDemandInterest,
     },
@@ -146,6 +146,7 @@ export function createSupabaseDeps(): SupabaseDeps {
             input_tokens: trace.inputTokens,
             output_tokens: trace.outputTokens,
             latency_ms: Math.round(trace.latencyMs),
+            tools: trace.tools?.length ? trace.tools : null,
           });
         if (error) throw new Error("Trace agen tidak dapat disimpan.");
       },

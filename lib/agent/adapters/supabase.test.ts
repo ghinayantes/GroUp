@@ -70,6 +70,7 @@ describe("supabase adapter: orders", () => {
       p_channel: "simulator",
       p_management_code_hash: null,
       p_provider_message_id: "msg-1",
+      p_buyer_user_id: null,
     });
   });
 
@@ -100,6 +101,7 @@ describe("supabase adapter: orders", () => {
       p_order_id: ORDER_ID,
       p_phone: "6281234567890",
       p_management_code_hash: null,
+      p_buyer_user_id: null,
       p_action: "update",
       p_quantity: 8,
     });
@@ -250,7 +252,7 @@ describe("supabase adapter: traces", () => {
     tools: ["daftar_batch"],
   };
 
-  it("record menyimpan sender_hash tanpa slots, tools, atau sender asli", async () => {
+  it("record menyimpan sender_hash dan nama tools, tanpa slots atau sender asli", async () => {
     const hash = senderHash("whatsapp", "6281");
     await createSupabaseDeps().traces.record("whatsapp", hash, trace);
     const [[row]] = fakeSupabase.op(only((c) => c.table === "agent_traces"), "insert") as [[Record<string, unknown>]];
@@ -265,6 +267,7 @@ describe("supabase adapter: traces", () => {
       input_tokens: 120,
       output_tokens: 40,
       latency_ms: 813,
+      tools: ["daftar_batch"],
     });
     expect(JSON.stringify(row)).not.toContain("6281");
   });
