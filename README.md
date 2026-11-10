@@ -31,6 +31,20 @@ Buka `http://localhost:3000`. Tanpa kredensial, website tetap menampilkan batch 
    - **Pembeli** (`/akun`): ringkasan dan pesanan saya dengan timeline kuota → pembayaran → penyerahan; jumlah bisa diubah atau dibatalkan selama batch terbuka. Pesanan web yang dibuat saat login otomatis tercatat di akun.
    - Tutup batch setelah deadline: di bawah minimum → *tidak tercapai* tanpa tagihan; mencapai minimum → harga final dibekukan dan pesanan berstatus *menunggu bayar*.
 
+## Halaman depan dan video demo
+
+Halaman depan menampilkan hero dengan video demo (`NEXT_PUBLIC_DEMO_VIDEO_URL` dan `NEXT_PUBLIC_DEMO_POSTER_URL`; tanpa env ini tampil gambar statis), perbandingan harga pasar vs patungan dari batch terbuka (disembunyikan bila tidak ada data pasar), tiga manfaat AI, simulator dengan panel jalur/alasan/guard, strip metrik eval, dan tombol "Coba sebagai …". Strip metrik memakai `evals/summary.ts` (sama dengan `eval:report`) dan hanya tampil bila hasil eval router ada dan `ai/data/test.jsonl` tidak kosong.
+
+Rekam video (butuh `ffmpeg` di PATH dan browser Playwright, sekali: `npx playwright install chromium`):
+
+```bash
+npm run demo:seed
+npm run build && npm start          # terminal lain
+npm run demo:record                 # DEMO_BASE_URL bawaan http://localhost:3000
+```
+
+Skrip merekam simulator, detail batch, radar dan asisten harga sebagai grosir, serta Aktivitas AI sebagai admin, lalu mengonversi ke MP4 (H.264, `+faststart`) dan poster JPG, mengupload ke bucket `site-media`, dan mencetak nilai env yang perlu diisi. Langkah yang gagal menghentikan rekaman, jadi skrip ini juga uji asap end-to-end.
+
 ## AI kepercayaan
 
 Semua angka dihitung dari data; fitur disembunyikan bila datanya tidak cukup. Fitur yang dibantu AI diberi label "Dibantu AI" yang menautkan ke `/transparansi-ai`.
@@ -144,6 +158,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
 | `NEXT_PUBLIC_SITE_URL` | URL publik situs, dipakai di tautan balasan agen. Di Vercel jatuh ke `VERCEL_PROJECT_PRODUCTION_URL` bila kosong |
 | `CRON_SECRET` | String acak ≥ 16 karakter (huruf dan angka) untuk endpoint pembersihan |
 | `DEMO_PEMBELI_EMAIL`, `DEMO_PEMBELI_PASSWORD`, `DEMO_GROSIR_EMAIL`, `DEMO_GROSIR_PASSWORD`, `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | Akun demo untuk "Coba sebagai juri" di `/masuk` dan `npm run demo:seed` |
+| `NEXT_PUBLIC_DEMO_VIDEO_URL`, `NEXT_PUBLIC_DEMO_POSTER_URL` | Video dan poster hero halaman depan, dicetak oleh `npm run demo:record` |
 | `AGENT_ENABLED` | `false` mematikan pemahaman teks bebas; teks bebas hanya dibalas menu (sakelar darurat) |
 
 ## Tes
