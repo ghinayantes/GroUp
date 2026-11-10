@@ -26,3 +26,5 @@ npm-debug.log*
 /sessions
 /docs
 /.claude
+# demo seed LLM cache
+/evals/cache/demo-seed

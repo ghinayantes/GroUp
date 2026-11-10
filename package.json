@@ -15,7 +15,8 @@
     "data:check": "tsx ai/data/check.ts",
     "model:calibrate": "tsx --conditions=react-server ai/data/calibrate.ts",
     "eval": "tsx --conditions=react-server --env-file-if-exists=.env.local evals/run.ts",
-    "eval:report": "tsx evals/report.ts"
+    "eval:report": "tsx evals/report.ts",
+    "demo:seed": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/demo/seed.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.114",
