@@ -1,5 +1,6 @@
 import Link from "next/link";
 import DemoSignIn from "@/components/auth/DemoSignIn";
+import DemoPipeline from "@/components/showcase/DemoPipeline";
 import HeroMedia from "@/components/showcase/HeroMedia";
 import MetricsStrip from "@/components/showcase/MetricsStrip";
 import BatchGrid, { JoinButton } from "@/components/site/BatchGrid";
@@ -57,6 +58,12 @@ export default async function Home() {
           <div className="float-bottom"><span>{percentOf(featured)}% dari minimum</span><b>{daysLeft(featured.closesAt)} hari lagi</b></div>
         </Link>}
       </div></HeroMedia>
+    </section>
+
+    <section className="section" aria-labelledby="demo-agen">
+      <div className="section-head"><div><span className="eyebrow">Demo agen</span><h2 id="demo-agen">Lihat satu chat jadi <em>keputusan</em></h2></div><Link className="text-link" href="/simulator">Coba sendiri</Link></div>
+      <p className="section-note">Rekaman asli simulator di production. Setiap klip menunjukkan cara agen memahami pesan, mengecek data, lalu menunggu konfirmasi pembeli.</p>
+      <DemoPipeline />
     </section>
 
     {gap.length > 0 && <section className="section">

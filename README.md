@@ -174,6 +174,14 @@ npm run demo:record                 # DEMO_BASE_URL bawaan http://localhost:3000
 
 Skrip merekam simulator, detail batch, radar dan asisten harga sebagai grosir, serta Aktivitas AI sebagai admin, lalu mengonversi ke MP4 (H.264, `+faststart`) dan poster JPG, mengupload ke bucket `site-media`, dan mencetak nilai env yang perlu diisi. Langkah yang gagal menghentikan rekaman, jadi skrip ini juga uji asap end-to-end.
 
+Bagian "Lihat satu chat jadi keputusan" memutar tiga klip simulator asli dari `public/demo/` (WebM, poster JPG, caption VTT). Langkah agen di sampingnya menyala sesuai waktu di `lib/demo-clips.json`. Rekam ulang tanpa ffmpeg:
+
+```bash
+npm run demo:clips -- --base https://gro-up-virid.vercel.app --channel msedge   # --only <id> untuk satu skenario
+```
+
+Skenario dan teksnya ada di `lib/demo-clips.ts`. Setiap klip hanya disimpan bila balasan agen sesuai harapan (tombol konfirmasi, jawaban dari PIHPS, atau perintah manipulatif dialihkan ke menu); kalau tidak, dicoba ulang sampai tiga kali.
+
 </details>
 
 <details>
