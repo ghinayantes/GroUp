@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Icon from "@/components/site/Icon";
 import Modal from "@/components/site/Modal";
+import { explainTrace } from "@/lib/agent/trace-explain";
 import type { Reply, TraceRecord } from "@/lib/agent/types";
 
 type Entry = { id: number; from: "user"; text: string } | { id: number; from: "bot"; reply: Reply; turn: number };
@@ -10,7 +11,7 @@ type Turn = { id: number; input: string; trace: TraceRecord };
 type ListReply = Extract<Reply, { kind: "list" }>;
 type Outgoing = { text: string } | { replyId: string; replyTitle: string };
 
-const SUGGESTIONS = ["MULAI", "PESANAN", "Harga cabai berapa?"];
+const DEFAULT_SUGGESTIONS = ["MULAI", "PESANAN", "Harga cabai berapa?"];
 const NAME_KEY = "groupSimulatorName";
 const isValidName = (name: string) => name.trim().length >= 2 && name.trim().length <= 80;
 
@@ -42,7 +43,7 @@ const stageLabel: Record<TraceRecord["stage"], string> = { fixed: "Perintah teta
 
 const show = (value: unknown) => (value === null || value === undefined || (Array.isArray(value) && value.length === 0) ? "—" : typeof value === "string" ? value : JSON.stringify(value));
 
-export default function ChatSimulator() {
+export default function ChatSimulator({ suggestions = DEFAULT_SUGGESTIONS, traceOpen = false }: { suggestions?: string[]; traceOpen?: boolean }) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState("");
@@ -105,7 +106,7 @@ export default function ChatSimulator() {
       <div className="chat-sim-log" ref={logRef} aria-live="polite">
         {entries.length === 0 && <div className="chat-sim-empty">
           <p>Coba kirim <b>MULAI</b> untuk melihat batch yang sedang dibuka.</p>
-          <div className="chat-sim-chips">{SUGGESTIONS.map((s) => <button key={s} type="button" className="pill" disabled={busy} onClick={() => send({ text: s })}>{s}</button>)}</div>
+          <div className="chat-sim-chips">{suggestions.map((s) => <button key={s} type="button" className="pill" disabled={busy} onClick={() => send({ text: s })}>{s}</button>)}</div>
         </div>}
         {entries.map((entry) => entry.from === "user"
           ? <div key={entry.id} className="chat-bubble chat-bubble-user">{entry.text}</div>
@@ -121,13 +122,15 @@ export default function ChatSimulator() {
       </form>
     </section>
 
-    <details className="chat-trace">
+    <details className="chat-trace" open={traceOpen || undefined}>
       <summary>Di balik layar <small>{turns.length} pesan</small></summary>
       {turns.length === 0 ? <p className="chat-trace-empty">Kirim pesan untuk melihat cara agen memprosesnya.</p> :
       <ol>{[...turns].reverse().map(({ id, input, trace }) => <li key={id}>
         <b className="chat-trace-input">“{input}”</b>
         <dl>
           <dt>Tahap</dt><dd>{stageLabel[trace.stage]}</dd>
+          <dt>Alasan</dt><dd>{explainTrace(trace).reason}</dd>
+          {explainTrace(trace).guards.map((guard) => <Fragment key={guard}><dt>Guard</dt><dd>{guard}</dd></Fragment>)}
           <dt>Intent</dt><dd>{show(trace.intent)}</dd>
           <dt>Keyakinan</dt><dd>{trace.confidence === null ? "—" : `${Math.round(trace.confidence * 100)}%`}</dd>
           <dt>Slot</dt><dd><code>{show(trace.slots)}</code></dd>
