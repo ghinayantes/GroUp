@@ -2,7 +2,7 @@ import { createGoogle } from "@ai-sdk/google";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
 import type { Stage2Agent } from "./ports";
-import { createStage2Agent, type Stage2OutputMode } from "./stage2/agent";
+import { createStage2Agent, type ProviderOptions, type Stage2OutputMode } from "./stage2/agent";
 
 export type Env = Record<string, string | undefined>;
 
@@ -13,8 +13,11 @@ const DEFAULT_GATEWAY_MODEL = "nvidia/nemotron-3.5-lightning-free";
 const DEFAULT_GOOGLE_MODEL = "gemini-3.5-flash-lite";
 const DEFAULT_OUTPUT_MODE: Stage2OutputMode = "json-text";
 const OUTPUT_MODES: readonly Stage2OutputMode[] = ["native", "json-text"];
+const THINKING_LEVELS = ["minimal", "low", "medium", "high"] as const;
+type ThinkingLevel = (typeof THINKING_LEVELS)[number];
+const DEFAULT_THINKING_LEVEL: ThinkingLevel = "minimal";
 
-export type SelectedModel = { provider: Provider; label: string; model: LanguageModel };
+export type SelectedModel = { provider: Provider; label: string; model: LanguageModel; providerOptions?: ProviderOptions };
 
 const disabled = (reason: string) => {
   console.warn(`Tahap 2 dimatikan: ${reason}. Teks bebas dibalas menu.`);
@@ -29,6 +32,14 @@ export function stage2OutputMode(env: Env): Stage2OutputMode {
   return DEFAULT_OUTPUT_MODE;
 }
 
+export function stage2ThinkingLevel(env: Env): ThinkingLevel {
+  const value = env.AGENT_STAGE2_THINKING_LEVEL;
+  if (!value) return DEFAULT_THINKING_LEVEL;
+  if ((THINKING_LEVELS as readonly string[]).includes(value)) return value as ThinkingLevel;
+  console.warn(`AGENT_STAGE2_THINKING_LEVEL "${value}" tidak dikenal; memakai ${DEFAULT_THINKING_LEVEL}.`);
+  return DEFAULT_THINKING_LEVEL;
+}
+
 export function selectStage2Model(env: Env): SelectedModel | null {
   const provider = env.AGENT_STAGE2_PROVIDER || "gateway";
   const id = env.AGENT_STAGE2_MODEL;
@@ -41,7 +52,12 @@ export function selectStage2Model(env: Env): SelectedModel | null {
     case "google": {
       if (!env.GOOGLE_GENERATIVE_AI_API_KEY) return disabled("GOOGLE_GENERATIVE_AI_API_KEY belum diisi");
       const modelId = id || DEFAULT_GOOGLE_MODEL;
-      return { provider, label: `google/${modelId}`, model: createGoogle({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(modelId) };
+      return {
+        provider,
+        label: `google/${modelId}`,
+        model: createGoogle({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(modelId),
+        providerOptions: { google: { thinkingConfig: { thinkingLevel: stage2ThinkingLevel(env) } } },
+      };
     }
     case "openai-compatible": {
       const missing = ["AGENT_STAGE2_BASE_URL", "AGENT_STAGE2_API_KEY", "AGENT_STAGE2_MODEL"].filter((name) => !env[name]);
@@ -66,5 +82,6 @@ export function createStage2FromEnv(env: Env): Stage2Agent | null {
     model: selected.label,
     languageModel: typeof selected.model === "string" ? undefined : selected.model,
     outputMode: stage2OutputMode(env),
+    providerOptions: selected.providerOptions,
   });
 }

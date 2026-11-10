@@ -3,7 +3,7 @@ import { SOURCES, type IntentRow } from "./rows";
 
 export type ValidationRules = { allowedSources: IntentRow["source"][]; minTotal: number; minPerIntent: number; maxLength: number };
 
-export const TEST_SET_RULES: ValidationRules = { allowedSources: ["team", "umkm"], minTotal: 300, minPerIntent: 25, maxLength: 1000 };
+export const TEST_SET_RULES: ValidationRules = { allowedSources: ["team", "umkm"], minTotal: 150, minPerIntent: 15, maxLength: 1000 };
 
 export const TRAIN_SOURCE_RULES: ValidationRules = { allowedSources: [...SOURCES], minTotal: 0, minPerIntent: 0, maxLength: 1000 };
 

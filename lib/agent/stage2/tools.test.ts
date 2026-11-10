@@ -3,7 +3,7 @@ import { createMemoryDeps, type MemoryOrder } from "@/lib/agent/adapters/memory"
 import type { MarketPricePort, ToolContext } from "@/lib/agent/ports";
 import { FIXTURE_BATCHES, FIXTURE_NOW } from "@/test/fixtures/batches";
 import { ProposedActionSchema } from "./schema";
-import { buildTools } from "./tools";
+import { buildTools, formatTanggal } from "./tools";
 
 const CABAI = FIXTURE_BATCHES[0];
 const PHONE = "6281234567890";
@@ -31,6 +31,17 @@ function context(marketPrice: MarketPricePort = { lookup: async () => null }): T
 
 const run = async (tools: ReturnType<typeof buildTools>, name: keyof ReturnType<typeof buildTools>, input: unknown) =>
   (tools[name].execute as (input: unknown, options: unknown) => Promise<unknown>)(input, { toolCallId: "t1", messages: [], context: {} });
+
+describe("formatTanggal", () => {
+  it("menulis tanggal ISO dalam bahasa Indonesia", () => {
+    expect(formatTanggal("2026-11-02")).toBe("2 November 2026");
+    expect(formatTanggal("2026-03-15T00:00:00")).toBe("15 Maret 2026");
+  });
+
+  it("null untuk teks yang bukan tanggal", () => {
+    expect(formatTanggal("NaT")).toBeNull();
+  });
+});
 
 describe("buildTools", () => {
   it("pesanan_saya tidak bisa membaca pesanan pengirim lain walau input berisi senderKey lain", async () => {
@@ -86,6 +97,7 @@ describe("buildTools", () => {
       satuan: "kg",
       sumber: "PIHPS",
       tanggal: "2026-11-02",
+      tanggal_teks: "2 November 2026",
     });
   });
 });

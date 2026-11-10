@@ -32,6 +32,20 @@ describe("isGrounded", () => {
     expect(isGrounded("cuma Rp5 kok", [])).toBe(false);
   });
 
+  it("false untuk nama bulan yang tidak cocok dengan tanggal di tool", () => {
+    const price = [{ harga_per_satuan: 45000, tanggal: "2026-11-02", tanggal_teks: "2 November 2026" }];
+    expect(isGrounded("Rp45.000 per tanggal 2 Maret 2026", price)).toBe(false);
+    expect(isGrounded("Rp45.000 per tanggal 2 November 2026", price)).toBe(true);
+  });
+
+  it("menerima bulan WIB dari timestamp UTC di akhir bulan", () => {
+    expect(isGrounded("tutup 1 Desember", [{ tutup: "2026-11-30T20:00:00.000Z" }])).toBe(true);
+  });
+
+  it("false untuk nama bulan tanpa data tool", () => {
+    expect(isGrounded("datanya per Maret", [])).toBe(false);
+  });
+
   it("false untuk angka besar tanpa Rp yang tidak ada di tool", () => {
     expect(isGrounded("minimal 75 kg", tool)).toBe(false);
   });

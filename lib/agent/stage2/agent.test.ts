@@ -52,6 +52,21 @@ function sequence(...responses: ReturnType<typeof textResponse | typeof toolCall
 
 const agent = (languageModel: MockLanguageModelV4, outputMode: "native" | "json-text") => createStage2Agent({ model: "test/model", outputMode, languageModel });
 
+describe("createStage2Agent providerOptions", () => {
+  it("meneruskan providerOptions ke model", async () => {
+    let received: unknown;
+    const model = new MockLanguageModelV4({
+      doGenerate: async (options) => {
+        received = options.providerOptions;
+        return textResponse(JSON.stringify({ action: { type: "list_orders" } }));
+      },
+    });
+    const providerOptions = { google: { thinkingConfig: { thinkingLevel: "minimal" } } };
+    await createStage2Agent({ model: "test/model", outputMode: "json-text", languageModel: model, providerOptions }).propose(input, toolContext);
+    expect(received).toEqual(providerOptions);
+  });
+});
+
 describe("createStage2Agent native", () => {
   it("mengembalikan confirm_change dari output terstruktur model, beserta tool dan token", async () => {
     const { model } = sequence(toolCallResponse("pesanan_saya", {}), textResponse(JSON.stringify({ action: { type: "confirm_change", orderCode: "AB12CD", quantity: 5 } })));

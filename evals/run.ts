@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 import { loadIntentClassifier } from "@/lib/agent/stage1/classifier";
 import { createHash } from "node:crypto";
-import { createStage2FromEnv, stage2OutputMode } from "@/lib/agent/model-provider";
+import { createStage2FromEnv, stage2OutputMode, stage2ThinkingLevel } from "@/lib/agent/model-provider";
 import { STAGE2_JSON_FORMAT, STAGE2_SYSTEM } from "@/lib/agent/stage2/prompt";
 import { withCache, type CachedAgent } from "./cache";
 import { loadExtract, loadIntentTest, loadScenarios, type Loaded } from "./datasets";
@@ -28,7 +28,7 @@ const baseAgent = mode === "fixed-only" ? null : createStage2FromEnv(process.env
 if (mode !== "fixed-only" && !baseAgent) throw new Error("Konfigurasi tahap 2 belum lengkap; lihat peringatan di atas.");
 const stage2: CachedAgent | null = baseAgent && withCache(baseAgent, {
   refresh: values.refresh,
-  salt: `${outputMode}:${createHash("sha256").update(STAGE2_SYSTEM + STAGE2_JSON_FORMAT).digest("hex")}`,
+  salt: `${outputMode}:${stage2ThinkingLevel(process.env)}:${createHash("sha256").update(STAGE2_SYSTEM + STAGE2_JSON_FORMAT).digest("hex")}`,
 });
 const gatewayWithoutCredentials =
   (process.env.AGENT_STAGE2_PROVIDER || "gateway") === "gateway" && !process.env.AI_GATEWAY_API_KEY && !process.env.VERCEL_OIDC_TOKEN;
