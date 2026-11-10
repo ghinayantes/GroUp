@@ -6,8 +6,9 @@ import { Stage2OutputSchema } from "./schema";
 import { buildTools } from "./tools";
 
 export type Stage2OutputMode = "native" | "json-text";
+export type ProviderOptions = Parameters<typeof generateText>[0]["providerOptions"];
 
-type Options = { model: string; outputMode: Stage2OutputMode; timeoutMs?: number; languageModel?: LanguageModel };
+type Options = { model: string; outputMode: Stage2OutputMode; timeoutMs?: number; languageModel?: LanguageModel; providerOptions?: ProviderOptions };
 
 const MAX_STEPS = 5;
 const MAX_OUTPUT_TOKENS = 600;
@@ -32,7 +33,7 @@ function parseJsonAction(text: string): ProposedAction | null {
 
 const sum = (values: (number | undefined)[]) => (values.some((v) => v !== undefined) ? values.reduce<number>((total, v) => total + (v ?? 0), 0) : null);
 
-export function createStage2Agent({ model, outputMode, timeoutMs = 12_000, languageModel }: Options): Stage2Agent {
+export function createStage2Agent({ model, outputMode, timeoutMs = 12_000, languageModel, providerOptions }: Options): Stage2Agent {
   const instructions = outputMode === "json-text" ? STAGE2_SYSTEM + STAGE2_JSON_FORMAT : STAGE2_SYSTEM;
 
   return {
@@ -46,6 +47,7 @@ export function createStage2Agent({ model, outputMode, timeoutMs = 12_000, langu
         stopWhen: isStepCount(MAX_STEPS),
         maxOutputTokens: MAX_OUTPUT_TOKENS,
         abortSignal: signal,
+        providerOptions,
       };
       const runs: Run[] = [];
       let action: ProposedAction | null;

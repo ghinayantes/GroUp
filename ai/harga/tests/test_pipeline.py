@@ -17,7 +17,7 @@ from harga.daily import pilih_model_harian  # noqa: E402
 from harga.features import buat_fitur, ke_harian  # noqa: E402
 from harga.load import deteksi_frekuensi  # noqa: E402
 from harga.models import Naive, interval_empiris, pilih_model, walk_forward  # noqa: E402
-from harga.predict import run, status_dari  # noqa: E402
+from harga.predict import run, status_dari, tulis_json  # noqa: E402
 
 CSV_ASLI = ROOT / "dataset" / "dataset_gabungan_komoditas_2026.csv"
 
@@ -115,6 +115,17 @@ def test_prediksi_json_sama_dengan_csv(tmp_path):
     assert data["mode"] == "bulanan"
     assert [r["komoditas"] for r in data["prediksi"]] == list(p["komoditas"])
     assert all(isinstance(r["prediksi"], int) and r["tanggal_target"] == "2026-12-01" for r in data["prediksi"])
+
+
+def test_tulis_json_tanggal_kosong_jadi_null_dan_ada_skema(tmp_path):
+    pred = pd.DataFrame({"komoditas": ["cabai"], "tanggal_terakhir": [pd.NaT],
+                         "tanggal_target": pd.to_datetime(["2026-12-01"]), "prediksi": [1000]})
+    tulis_json(pred, tmp_path / "p.json", "bulanan")
+    data = json.loads((tmp_path / "p.json").read_text(encoding="utf-8"))
+    assert data["skema"] == 1
+    assert data["dibuat"].endswith("+07:00")
+    assert data["prediksi"][0]["tanggal_terakhir"] is None
+    assert data["prediksi"][0]["tanggal_target"] == "2026-12-01"
 
 
 def test_end_to_end_harian_sintetis(tmp_path):

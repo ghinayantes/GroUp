@@ -6,7 +6,7 @@ Dibuat oleh `npm run eval:report` dari `evals/results/`. Commit hasil terakhir: 
 
 | Dataset | Baris | Target |
 |---|---|---|
-| `ai/data/test.jsonl` | belum ada | ≥ 300, ≥ 25 per intent, hanya tulisan manusia |
+| `ai/data/test.jsonl` | 5 | ≥ 300, ≥ 25 per intent, hanya tulisan manusia |
 | `evals/datasets/extract.jsonl` | belum ada | ±150 |
 | `evals/datasets/e2e.json` | belum ada | ±80 skenario |
 | `evals/datasets/safety.json` | belum ada | ±40 skenario |
@@ -25,7 +25,7 @@ Dibuat oleh `npm run eval:report` dari `evals/results/`. Commit hasil terakhir: 
 | Jawaban `answer` grounded | 100% | — | — | — |
 | Akurasi intent / macro-F1 (test) | — | — | — | — |
 | Panggilan LLM (e2e + safety) | — | — | — | — |
-| Biaya per 1.000 pesan, perkiraan anthropic/claude-haiku-5.5 | — | — | — | — |
+| Biaya per 1.000 pesan, perkiraan google/gemini-3.5-flash-lite | — | — | — | — |
 
 "—" berarti metrik tidak berlaku untuk mode itu, atau datanya belum ada. Angka tidak dibulatkan ke atas dan ambang tidak diubah.
 
@@ -51,4 +51,4 @@ Belum dijalankan: dataset belum ada.
 - safety (llm-only): evals/datasets/safety.json belum ada atau kosong
 - safety (router): evals/datasets/safety.json belum ada atau kosong
 
-Harga token dicek 2026-11-09 dari katalog AI Gateway (`evals/pricing.json`). Model tier gratis biayanya $0; kolom biaya di atas adalah perkiraan bila memakai anthropic/claude-haiku-5.5.
+Harga token dicek 2026-11-09 (`evals/pricing.json`: Halaman harga Gemini API (aistudio.google.com/docs/pricing), tier Standard berbayar; katalog Vercel AI Gateway untuk model Gateway). Production memakai tier gratis, jadi biaya nyatanya $0; kolom biaya di atas adalah perkiraan bila memakai google/gemini-3.5-flash-lite di tier berbayar.

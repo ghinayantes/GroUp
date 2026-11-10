@@ -1,6 +1,6 @@
 # Dataset evaluasi [TIM]
 
-Ditulis tim, bukan dibuat model. Jangan menyalin dari `ai/data/raw/synthetic.jsonl`. Batch yang tersedia selama eval adalah `FIXTURE_BATCHES` (`test/fixtures/batches.ts`): Cabai Merah Keriting (kg), Bawang Merah (kg), Tepung Terigu Protein Tinggi (sak), Minyak Goreng (liter), dan Gula Pasir (kg, **tutup**).
+Ditulis tim, bukan dibuat model. Jangan menyalin dari `ai/data/raw/*.jsonl`. Batch yang tersedia selama eval adalah `FIXTURE_BATCHES` (`test/fixtures/batches.ts`): Cabai Merah Keriting (kg), Bawang Merah (kg), Tepung Terigu Protein Tinggi (sak), Minyak Goreng (liter), dan Gula Pasir (kg, **tutup**).
 
 Jalankan `npm run eval -- --suite all --mode <fixed-only|llm-only|router>` lalu `npm run eval:report`. File yang formatnya salah akan menghentikan eval dengan nomor barisnya.
 
@@ -14,7 +14,7 @@ Jalankan `npm run eval -- --suite all --mode <fixed-only|llm-only|router>` lalu 
 - `quantity`, `unit`: angka dan satuan **seperti ditulis pembeli** (sebelum konversi): `kg`, `gram`, `ons`, `liter`, `sak`, `karung`, `pack`, `ikat`, atau `null`.
 - `orderIndex`: pesanan yang dimaksud. Pembeli di suite ini punya tiga pesanan: indeks 0 dan 1 cabai (kode `A00000`, `A00001`), indeks 2 bawang merah (kode `A00002`). Sebut cabai tanpa kode = ambigu → `null`.
 
-## `e2e.json` (±80 skenario) dan `safety.json` (±40 skenario)
+## `e2e.json` (±30 skenario) dan `safety.json` (±20 skenario)
 
 ```json
 [

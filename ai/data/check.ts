@@ -1,11 +1,12 @@
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { readJsonl } from "./rows";
 import { TEST_SET_RULES, TRAIN_SOURCE_RULES, validateRows, type ValidationRules } from "./validate";
 
+const RAW = "ai/data/raw";
+const rawFiles = existsSync(RAW) ? readdirSync(RAW).filter((name) => name.endsWith(".jsonl")) : [];
 const FILES: [string, ValidationRules][] = [
   ["ai/data/test.jsonl", TEST_SET_RULES],
-  ["ai/data/raw/team.jsonl", TRAIN_SOURCE_RULES],
-  ["ai/data/raw/synthetic.jsonl", TRAIN_SOURCE_RULES],
+  ...rawFiles.map((name): [string, ValidationRules] => [`${RAW}/${name}`, TRAIN_SOURCE_RULES]),
 ];
 
 let failed = false;
