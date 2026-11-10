@@ -3,6 +3,8 @@
 import { useState } from "react";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { send, useAction } from "@/components/dashboard/client";
+import BatchAssistant from "@/components/trust/BatchAssistant";
+import { ceil10, type RadarEntry, type TierSuggestion } from "@/lib/trust/demand-radar";
 import type { DashboardSupplier } from "@/lib/dashboard-data";
 
 export type BatchDraft = { name: string; category: string; unit: string; minimum: number };
@@ -10,10 +12,10 @@ export type BatchDraft = { name: string; category: string; unit: string; minimum
 const DEFAULT_TIERS = [{ minQuantity: 100, unitPrice: 35000 }];
 
 /** Admin memilih supplier; grosir selalu membuka batch untuk supplier miliknya. */
-export default function CreateBatchForm({ endpoint, suppliers, initial }: { endpoint: string; suppliers?: DashboardSupplier[]; initial?: Partial<BatchDraft> }) {
+export default function CreateBatchForm({ endpoint, suppliers, initial, radar = [] }: { endpoint: string; suppliers?: DashboardSupplier[]; initial?: Partial<BatchDraft>; radar?: RadarEntry[] }) {
   const empty = { supplierId: "", name: "", category: "Protein", unit: "kg", minimum: 100, closesAt: "", paymentInstructions: "", fulfillmentPlan: "", ...initial };
   const [form, setForm] = useState(empty);
-  const [tiers, setTiers] = useState(DEFAULT_TIERS);
+  const [tiers, setTiers] = useState(initial?.minimum ? [{ ...DEFAULT_TIERS[0], minQuantity: initial.minimum }] : DEFAULT_TIERS);
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const { busy, message, run } = useAction();
@@ -27,9 +29,19 @@ export default function CreateBatchForm({ endpoint, suppliers, initial }: { endp
     if (ok) { setForm({ ...empty, supplierId: form.supplierId }); setTiers(DEFAULT_TIERS); setImagePath(null); }
   }
 
+  function applySuggestion(suggestion: TierSuggestion) {
+    const minimum = suggestion.minimum ?? form.minimum;
+    setForm({ ...form, minimum });
+    setTiers([
+      { minQuantity: minimum, unitPrice: suggestion.tiers[0].unitPrice },
+      { minQuantity: ceil10(minimum * 1.5), unitPrice: suggestion.tiers[1].unitPrice },
+    ]);
+  }
+
   if (suppliers && suppliers.length === 0) return <p className="admin-message">Tambahkan supplier terlebih dahulu.</p>;
 
-  return <form className="admin-form admin-grid" onSubmit={submit}>
+  return <div className="create-batch">
+  <form className="admin-form admin-grid" onSubmit={submit}>
     {suppliers && <label>Supplier<select required value={form.supplierId} onChange={set("supplierId")}><option value="">Pilih supplier</option>{suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}{s.verified ? " ✓" : " (belum terverifikasi)"}</option>)}</select></label>}
     <label>Nama bahan baku<input required value={form.name} onChange={set("name")} placeholder="Cabai merah keriting" /></label>
     <label>Kategori<input required list="categories" value={form.category} onChange={set("category")} /><datalist id="categories"><option>Protein</option><option>Sayuran</option><option>Bahan kering</option><option>Kemasan</option></datalist></label>
@@ -49,5 +61,7 @@ export default function CreateBatchForm({ endpoint, suppliers, initial }: { endp
     <label className="admin-full">Rencana penyerahan<textarea required value={form.fulfillmentPlan} onChange={set("fulfillmentPlan")} placeholder="Contoh: ambil di titik kumpul Pasar X, Sabtu 08.00–11.00." /></label>
     <div className="admin-full admin-field">Foto bahan (opsional)<ImageUpload value={imagePath} onChange={setImagePath} onBusyChange={setUploading} /></div>
     <div className="admin-submit"><button className="button button-dark" disabled={busy || uploading}>{busy ? "Membuat…" : "Buka batch"}</button>{message && <p role="status">{message}</p>}</div>
-  </form>;
+  </form>
+  <BatchAssistant name={form.name} unit={form.unit} tiers={tiers} radar={radar} onApply={applySuggestion} />
+  </div>;
 }

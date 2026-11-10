@@ -14,6 +14,7 @@ const NAV: Record<Role, NavItem[]> = {
     { href: "/grosir", label: "Ringkasan", icon: "home" },
     { href: "/grosir/batch", label: "Batch saya", icon: "store" },
     { href: "/grosir/buka-batch", label: "Buka batch", icon: "truck" },
+    { href: "/grosir/radar", label: "Radar", icon: "chart" },
     { href: "/grosir/profil", label: "Profil", icon: "shield" },
   ],
   admin: [

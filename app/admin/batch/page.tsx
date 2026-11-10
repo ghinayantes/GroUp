@@ -4,10 +4,11 @@ import { DashHeader } from "@/components/dashboard/Shell";
 import SimulatorPurge from "@/components/dashboard/SimulatorPurge";
 import { requireRole } from "@/lib/auth";
 import { listBatches, listSuppliers } from "@/lib/dashboard-data";
+import { loadDemandRadar } from "@/lib/trust/demand-radar-data";
 
 export default async function AdminBatches() {
   await requireRole("admin");
-  const [batches, suppliers] = await Promise.all([listBatches(), listSuppliers()]);
+  const [batches, suppliers, radar] = await Promise.all([listBatches(), listSuppliers(), loadDemandRadar()]);
   return <>
     <DashHeader eyebrow="PENGELOLAAN BATCH" title="Batch & pesanan">
       Pesanan dari website, WhatsApp, dan simulator masuk ke daftar yang sama. Setelah deadline, tutup batch: di bawah minimum batch tidak diproses; jika tercapai, harga final dibekukan lalu pembayaran dan penyerahan dicatat manual.
@@ -19,7 +20,7 @@ export default async function AdminBatches() {
     <section className="dash-card">
       <h2>Buka patungan</h2>
       <p className="admin-message">Satu bahan baku per batch. Harga final memakai tier tertinggi yang tercapai saat batch ditutup.</p>
-      <CreateBatchForm endpoint="/api/admin/patungans" suppliers={suppliers} />
+      <CreateBatchForm endpoint="/api/admin/patungans" suppliers={suppliers} radar={radar} />
     </section>
   </>;
 }
