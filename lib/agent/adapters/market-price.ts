@@ -1,8 +1,40 @@
 import prediksi from "@/ai/harga/output/prediksi.json";
 import { nameMatchScore } from "../extract";
-import type { MarketPrice, MarketPricePort } from "../ports";
+import type { MarketForecast, MarketPrice, MarketPricePort } from "../ports";
 
-export type PriceFile = { prediksi: { komoditas: string; tanggal_terakhir: string; harga_terakhir: number; satuan: string }[] };
+type PriceRow = {
+  komoditas: string;
+  tanggal_terakhir: string;
+  harga_terakhir: number;
+  satuan: string;
+  tanggal_target?: string | null;
+  prediksi?: number | null;
+  batas_bawah?: number | null;
+  batas_atas?: number | null;
+  perubahan_pct?: number | null;
+  status?: string | null;
+  mape_validasi?: number | null;
+  model?: string | null;
+};
+
+export type PriceFile = { prediksi: PriceRow[] };
+
+const FORECAST_STATUS = new Set(["NAIK", "TURUN", "STABIL", "BERGEJOLAK", "TIDAK PASTI"]);
+
+function forecastOf(row: PriceRow): MarketForecast | null {
+  const { tanggal_target, prediksi, batas_bawah, batas_atas, perubahan_pct, status, model } = row;
+  if (!tanggal_target || prediksi == null || batas_bawah == null || batas_atas == null || perubahan_pct == null || !status || !FORECAST_STATUS.has(status) || !model) return null;
+  return {
+    targetDate: tanggal_target,
+    price: prediksi,
+    low: batas_bawah,
+    high: batas_atas,
+    changePct: perubahan_pct,
+    status: status as MarketForecast["status"],
+    validationMape: row.mape_validasi ?? null,
+    model,
+  };
+}
 
 export const COMMODITY_NAMES: Record<string, string> = {
   beras_medium: "Beras Medium",
@@ -38,6 +70,7 @@ export function createMarketPricePort(data: PriceFile = prediksi): MarketPricePo
       unit: row.satuan,
       source: SOURCE,
       observedAt: row.tanggal_terakhir,
+      forecast: forecastOf(row),
     }));
 
   return {

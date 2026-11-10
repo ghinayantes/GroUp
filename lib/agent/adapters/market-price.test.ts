@@ -31,6 +31,16 @@ describe("createMarketPricePort", () => {
       unit: "kg",
       source: "PIHPS",
       observedAt: "2026-11-02",
+      forecast: null,
+    });
+  });
+
+  it("menyertakan prediksi bulan depan beserta galat validasi dan modelnya", async () => {
+    const withForecast = createMarketPricePort({
+      prediksi: [{ ...row("bawang_merah", 35000), tanggal_target: "2026-12-01", prediksi: 36400, batas_bawah: 33000, batas_atas: 39800, perubahan_pct: 4, status: "NAIK", mape_validasi: 7.2, model: "sarimax" }],
+    });
+    expect((await withForecast.lookup("bawang merah", null))?.forecast).toEqual({
+      targetDate: "2026-12-01", price: 36400, low: 33000, high: 39800, changePct: 4, status: "NAIK", validationMape: 7.2, model: "sarimax",
     });
   });
 

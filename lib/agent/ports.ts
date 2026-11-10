@@ -42,7 +42,20 @@ export type IntentClassifier = {
   version: string;
 };
 
-export type MarketPrice = { material: string; region: string; pricePerUnit: number; unit: string; source: string; observedAt: string };
+export type MarketForecast = {
+  targetDate: string;
+  price: number;
+  low: number;
+  high: number;
+  changePct: number;
+  /** Dari ai/harga: BERGEJOLAK bila galat validasi > 10%, TIDAK PASTI bila rentang prediksi mencakup naik dan turun. */
+  status: "NAIK" | "TURUN" | "STABIL" | "BERGEJOLAK" | "TIDAK PASTI";
+  /** MAPE validasi dalam persen; null bila tidak dihitung. */
+  validationMape: number | null;
+  model: string;
+};
+
+export type MarketPrice = { material: string; region: string; pricePerUnit: number; unit: string; source: string; observedAt: string; forecast?: MarketForecast | null };
 
 export type MarketPricePort = { lookup(material: string, region: string | null): Promise<MarketPrice | null> };
 

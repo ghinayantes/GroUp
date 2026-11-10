@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Batch } from "@/lib/batch";
 import type { ManagedOrder } from "@/lib/orders";
 import { FIXTURE_BATCHES } from "@/test/fixtures/batches";
-import { extractSlots, matchBatches, matchOrder, nameMatchScore, normalizedDistance, parseQuantity, toBatchUnit } from "./extract";
+import { extractSlots, matchBatches, matchOrder, nameMatchScore, normalizedDistance, parseQuantity, toBatchUnit, normalizeMaterial } from "./extract";
 
 const byName = (name: string) => FIXTURE_BATCHES.find((batch) => batch.name.startsWith(name))!;
 
@@ -135,6 +135,14 @@ describe("normalizedDistance", () => {
     ["", "", 0],
   ])("%s vs %s", (a, b, expected) => {
     expect(normalizedDistance(a, b)).toBeCloseTo(expected);
+  });
+});
+
+describe("normalizeMaterial", () => {
+  it("membuka alias tanpa menggandakan kata", () => {
+    expect(normalizeMaterial("Cabe Keriting")).toBe("cabai keriting");
+    expect(normalizeMaterial("terigu")).toBe("tepung terigu");
+    expect(normalizeMaterial("tepung terigu")).toBe("tepung terigu");
   });
 });
 

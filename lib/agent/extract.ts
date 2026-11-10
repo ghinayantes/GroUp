@@ -134,6 +134,9 @@ function expandAliases(text: string) {
   return words(text).flatMap((word) => (ALIASES[word] ?? word).split(" "));
 }
 
+/** Nama bahan dengan alias dibuka, huruf kecil, tanpa kata berulang: "cabe keriting" → "cabai keriting", "tepung terigu" tetap. */
+export const normalizeMaterial = (text: string) => [...new Set(expandAliases(text))].join(" ");
+
 const withBigrams = (tokens: string[]) => [...tokens, ...tokens.slice(1).map((token, i) => tokens[i] + token)];
 
 const tokenMatches = (a: string, b: string) =>
