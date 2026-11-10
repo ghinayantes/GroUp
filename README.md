@@ -15,7 +15,7 @@ Buka `http://localhost:3000`. Tanpa kredensial, website tetap menampilkan batch 
 
 1. Buat proyek Supabase dan buat file lokal `.env.local` di root proyek.
 2. Isi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, dan `SUPABASE_SECRET_KEY`. Jangan pernah menaruh secret key di variabel `NEXT_PUBLIC_` atau di browser.
-3. Terapkan semua file di `supabase/migrations/` secara berurutan (`20261030165820_create_patungan_ordering.sql`, `20261103090000_align_with_design.sql`, lalu `20261106090000_agent_router.sql`, `20261112090000_storage_buckets.sql`, dan `20261113090000_roles_and_demo.sql`) melalui Supabase SQL Editor atau `supabase db push`. Migrasi ketiga menambah kanal `simulator`, tabel agen (`agent_messages`, `agent_traces`, `demand_interests`) beserta kolom `channel` dan `pending_action` di `whatsapp_sessions`, batas 50 pesanan simulator aktif per batch, serta fungsi `purge_simulator_orders` dan `cleanup_agent_data`. Migrasi `20261112090000_storage_buckets.sql` membuat bucket `batch-images` dan `site-media`; foto batch diupload ke bucket `batch-images`. Migrasi `20261113090000_roles_and_demo.sql` menambah pemilik supplier (`suppliers.owner_user_id`), pemilik pesanan web (`orders.buyer_user_id`), kolom `tools` di trace agen, penanda `demo_seed`, serta fungsi `link_supplier_owner` dan `reset_demo_data`.
+3. Terapkan semua file di `supabase/migrations/` secara berurutan (`20261030165820_create_patungan_ordering.sql`, `20261103090000_align_with_design.sql`, lalu `20261106090000_agent_router.sql`, `20261112090000_storage_buckets.sql`, `20261113090000_roles_and_demo.sql`, dan `20261114090000_supplier_trust.sql`) melalui Supabase SQL Editor atau `supabase db push`. Migrasi ketiga menambah kanal `simulator`, tabel agen (`agent_messages`, `agent_traces`, `demand_interests`) beserta kolom `channel` dan `pending_action` di `whatsapp_sessions`, batas 50 pesanan simulator aktif per batch, serta fungsi `purge_simulator_orders` dan `cleanup_agent_data`. Migrasi `20261112090000_storage_buckets.sql` membuat bucket `batch-images` dan `site-media`; foto batch diupload ke bucket `batch-images`. Migrasi `20261113090000_roles_and_demo.sql` menambah pemilik supplier (`suppliers.owner_user_id`), pemilik pesanan web (`orders.buyer_user_id`), kolom `tools` di trace agen, penanda `demo_seed`, serta fungsi `link_supplier_owner` dan `reset_demo_data`. Migrasi `20261114090000_supplier_trust.sql` menambah cache ringkasan kepercayaan supplier.
 4. Aktifkan Email/Password di Supabase Auth. Peran akun disimpan di `app_metadata.role` (`admin`, `grosir`, atau `pembeli`) dan hanya bisa diubah dengan service role. Tidak ada pendaftaran publik. Untuk admin pertama, set perannya di SQL Editor proyek sendiri (ganti alamatnya):
 
    ```sql
@@ -27,9 +27,18 @@ Buka `http://localhost:3000`. Tanpa kredensial, website tetap menampilkan batch 
    Jangan gunakan `user_metadata` sebagai sumber otorisasi. Keluar lalu masuk kembali agar token sesi memuat peran baru.
 5. Masuk di `/masuk`. `proxy.ts` membatasi `/admin` untuk admin, `/grosir` untuk grosir, dan `/akun` untuk pembeli; tanpa sesi user dialihkan ke `/masuk`, dan dengan peran lain ke dashboard miliknya.
    - **Admin** (`/admin`): ringkasan KPI dan pembagian pesan per jalur agen; batch & pesanan dengan filter status (tutup batch, catat pembayaran dan penyerahan); verifikasi supplier dan hubungkan akun grosir (isi kata sandi untuk membuat akun grosir baru); Aktivitas AI dari `agent_traces`.
-   - **Grosir** (`/grosir`): ringkasan dan progres kuota, batch milik suppliernya (bisa ditutup), buka batch dengan upload foto, profil supplier.
+   - **Grosir** (`/grosir`): ringkasan dan progres kuota, batch milik suppliernya (bisa ditutup), buka batch dengan upload foto dan asisten harga, radar permintaan, profil dengan pratinjau kartu kepercayaan.
    - **Pembeli** (`/akun`): ringkasan dan pesanan saya dengan timeline kuota → pembayaran → penyerahan; jumlah bisa diubah atau dibatalkan selama batch terbuka. Pesanan web yang dibuat saat login otomatis tercatat di akun.
    - Tutup batch setelah deadline: di bawah minimum → *tidak tercapai* tanpa tagihan; mencapai minimum → harga final dibekukan dan pesanan berstatus *menunggu bayar*.
+
+## AI kepercayaan
+
+Semua angka dihitung dari data; fitur disembunyikan bila datanya tidak cukup. Fitur yang dibantu AI diberi label "Dibantu AI" yang menautkan ke `/transparansi-ai`.
+
+- **Cek harga wajar** (`lib/trust/fair-price.ts`): harga tier saat ini dibanding harga PIHPS Kota Bandung untuk bahan dan satuan yang sama, di kartu batch dan detail batch, beserta prediksi bulan depan dari `ai/harga/output/prediksi.json` (model dan galat validasinya ikut ditampilkan). Ringkasan pembeli menghitung total hemat dari pesanan yang punya data pasar.
+- **Kartu kepercayaan supplier** (`lib/trust/supplier.ts`): fakta dari database plus ringkasan 1–2 kalimat dari model tahap 2. Ringkasan dengan angka atau bulan yang tidak ada di fakta (`isGrounded`), error, atau lewat 5 detik diganti template. Hasilnya di-cache di `suppliers.trust_summary` selama 24 jam atau sampai faktanya berubah.
+- **Radar permintaan** (`lib/trust/demand-radar.ts`, `/grosir/radar`): minat aktif dikelompokkan per bahan, dengan kuantitas mingguan per satuan, permintaan sekali beli, tren 14 hari, dan harga pasar. Bahan dengan kurang dari 2 pengirim tidak ditampilkan.
+- **Asisten buka batch**: saran tier 95% dan 90% dari harga pasar (dibulatkan ke bawah ke Rp100), kuota minimum dari radar, dan peringatan bila ada tier ≥ harga pasar. Peringatan tidak memblokir penyimpanan.
 
 ## Mode demo
 
