@@ -15,8 +15,8 @@ Buka `http://localhost:3000`. Tanpa kredensial, website tetap menampilkan batch 
 
 1. Buat proyek Supabase dan buat file lokal `.env.local` di root proyek.
 2. Isi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, dan `SUPABASE_SECRET_KEY`. Jangan pernah menaruh secret key di variabel `NEXT_PUBLIC_` atau di browser.
-3. Terapkan semua file di `supabase/migrations/` secara berurutan (`20261030165820_create_patungan_ordering.sql`, `20261103090000_align_with_design.sql`, lalu `20261106090000_agent_router.sql`, dan `20261112090000_storage_buckets.sql`) melalui Supabase SQL Editor atau `supabase db push`. Migrasi ketiga menambah kanal `simulator`, tabel agen (`agent_messages`, `agent_traces`, `demand_interests`) beserta kolom `channel` dan `pending_action` di `whatsapp_sessions`, batas 50 pesanan simulator aktif per batch, serta fungsi `purge_simulator_orders` dan `cleanup_agent_data`. Migrasi `20261112090000_storage_buckets.sql` membuat bucket `batch-images` dan `site-media`; foto batch diupload ke bucket `batch-images`.
-4. Aktifkan Email/Password di Supabase Auth dan buat akun admin. Di SQL Editor proyek sendiri, set peran server-side untuk email admin (ganti alamatnya):
+3. Terapkan semua file di `supabase/migrations/` secara berurutan (`20261030165820_create_patungan_ordering.sql`, `20261103090000_align_with_design.sql`, lalu `20261106090000_agent_router.sql`, `20261112090000_storage_buckets.sql`, dan `20261113090000_roles_and_demo.sql`) melalui Supabase SQL Editor atau `supabase db push`. Migrasi ketiga menambah kanal `simulator`, tabel agen (`agent_messages`, `agent_traces`, `demand_interests`) beserta kolom `channel` dan `pending_action` di `whatsapp_sessions`, batas 50 pesanan simulator aktif per batch, serta fungsi `purge_simulator_orders` dan `cleanup_agent_data`. Migrasi `20261112090000_storage_buckets.sql` membuat bucket `batch-images` dan `site-media`; foto batch diupload ke bucket `batch-images`. Migrasi `20261113090000_roles_and_demo.sql` menambah pemilik supplier (`suppliers.owner_user_id`), pemilik pesanan web (`orders.buyer_user_id`), kolom `tools` di trace agen, penanda `demo_seed`, serta fungsi `link_supplier_owner` dan `reset_demo_data`.
+4. Aktifkan Email/Password di Supabase Auth. Peran akun disimpan di `app_metadata.role` (`admin`, `grosir`, atau `pembeli`) dan hanya bisa diubah dengan service role. Tidak ada pendaftaran publik. Untuk admin pertama, set perannya di SQL Editor proyek sendiri (ganti alamatnya):
 
    ```sql
    update auth.users
@@ -25,12 +25,22 @@ Buka `http://localhost:3000`. Tanpa kredensial, website tetap menampilkan batch 
    ```
 
    Jangan gunakan `user_metadata` sebagai sumber otorisasi. Keluar lalu masuk kembali agar token sesi memuat peran baru.
-5. Masuk di `/admin/login`. Di dasbor admin:
-   - tambah supplier lalu tandai terverifikasi setelah pemeriksaan manual (beserta catatan);
-   - buka batch dengan kuota minimum, 1–6 tier harga bertingkat, deadline, aturan pembayaran, dan rencana penyerahan;
-   - pantau progres dan daftar pesanan (website + WhatsApp) per batch;
-   - tutup batch setelah deadline: di bawah minimum → *tidak tercapai* tanpa tagihan; mencapai minimum → harga final dibekukan dan pesanan berstatus *menunggu bayar*;
-   - catat status pembayaran dan penyerahan per pesanan secara manual.
+5. Masuk di `/masuk`. `proxy.ts` membatasi `/admin` untuk admin, `/grosir` untuk grosir, dan `/akun` untuk pembeli; tanpa sesi user dialihkan ke `/masuk`, dan dengan peran lain ke dashboard miliknya.
+   - **Admin** (`/admin`): ringkasan KPI dan pembagian pesan per jalur agen; batch & pesanan dengan filter status (tutup batch, catat pembayaran dan penyerahan); verifikasi supplier dan hubungkan akun grosir (isi kata sandi untuk membuat akun grosir baru); Aktivitas AI dari `agent_traces`.
+   - **Grosir** (`/grosir`): ringkasan dan progres kuota, batch milik suppliernya (bisa ditutup), buka batch dengan upload foto, profil supplier.
+   - **Pembeli** (`/akun`): ringkasan dan pesanan saya dengan timeline kuota → pembayaran → penyerahan; jumlah bisa diubah atau dibatalkan selama batch terbuka. Pesanan web yang dibuat saat login otomatis tercatat di akun.
+   - Tutup batch setelah deadline: di bawah minimum → *tidak tercapai* tanpa tagihan; mencapai minimum → harga final dibekukan dan pesanan berstatus *menunggu bayar*.
+
+## Mode demo
+
+Isi `DEMO_PEMBELI_EMAIL/PASSWORD`, `DEMO_GROSIR_EMAIL/PASSWORD`, dan `DEMO_ADMIN_EMAIL/PASSWORD` di `.env.local` (dan di Vercel), lalu jalankan:
+
+```bash
+npm run demo:seed              # idempoten; memakai SUPABASE_SECRET_KEY
+npm run demo:seed -- --tanpa-llm   # trace simulasi tanpa memanggil LLM tahap 2
+```
+
+Skrip ini membuat 3 akun demo, supplier "Grosir Demo" (terverifikasi, milik akun grosir demo), 8 batch bahan PIHPS di berbagai status, pesanan pembeli demo, ±36 minat permintaan dari 15 pengirim fiktif, dan ±200 trace agen dari skenario simulator. Bila tahap 2 dikonfigurasi, skenario memakai LLM dengan cache di `evals/cache/demo-seed`, jadi pesan yang berulang hanya memanggil model sekali. Di `/masuk`, blok "Coba sebagai juri" login ke akun demo lewat server action, jadi kata sandi tidak pernah dikirim ke browser. `reset_demo_data()` berjalan setiap malam lewat `cleanup_agent_data()`: data buatan akun demo setelah seed dihapus dan data seed dikembalikan ke keadaan awal.
 
 Integrasi pembayaran dan logistik belum disiapkan.
 
@@ -112,7 +122,7 @@ Pelatihan dijalankan di Colab (`ai/training/intent_classifier.ipynb`). Format da
 
 ## Pembersihan data agen
 
-`vercel.ts` mendaftarkan Vercel Schedule `agent-cleanup` setiap hari pukul 02.00 WIB yang memanggil `GET /api/cron/cleanup`. Endpoint ini menolak permintaan tanpa header `Authorization: Bearer <CRON_SECRET>`, lalu menjalankan `cleanup_agent_data`: riwayat pesan dan ID pesan masuk dihapus setelah 30 hari, trace setelah 90 hari, dan sesi yang kedaluwarsa. Schedule hanya berjalan di deployment production. Untuk menjalankannya manual:
+`vercel.ts` mendaftarkan Vercel Schedule `agent-cleanup` setiap hari pukul 02.00 WIB yang memanggil `GET /api/cron/cleanup`. Endpoint ini menolak permintaan tanpa header `Authorization: Bearer <CRON_SECRET>`, lalu menjalankan `cleanup_agent_data`: riwayat pesan dan ID pesan masuk dihapus setelah 30 hari, trace setelah 90 hari, sesi yang kedaluwarsa, lalu `reset_demo_data()` untuk mode demo. Schedule hanya berjalan di deployment production. Untuk menjalankannya manual:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
@@ -124,6 +134,7 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | URL publik situs, dipakai di tautan balasan agen. Di Vercel jatuh ke `VERCEL_PROJECT_PRODUCTION_URL` bila kosong |
 | `CRON_SECRET` | String acak ≥ 16 karakter (huruf dan angka) untuk endpoint pembersihan |
+| `DEMO_PEMBELI_EMAIL`, `DEMO_PEMBELI_PASSWORD`, `DEMO_GROSIR_EMAIL`, `DEMO_GROSIR_PASSWORD`, `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | Akun demo untuk "Coba sebagai juri" di `/masuk` dan `npm run demo:seed` |
 | `AGENT_ENABLED` | `false` mematikan pemahaman teks bebas; teks bebas hanya dibalas menu (sakelar darurat) |
 
 ## Tes
