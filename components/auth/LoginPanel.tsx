@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { signIn, signInAsDemoForm } from "@/lib/auth-actions";
+import DemoSignIn from "@/components/auth/DemoSignIn";
+import { signIn } from "@/lib/auth-actions";
 import { ROLE_LABEL, ROLES, type Role } from "@/lib/roles";
 
 const ROLE_BENEFIT: Record<Role, string> = {
@@ -13,7 +14,6 @@ const ROLE_BENEFIT: Record<Role, string> = {
 export default function LoginPanel({ initialRole, next }: { initialRole: Role | null; next: string | null }) {
   const [role, setRole] = useState<Role | null>(initialRole);
   const [loginState, loginAction, loggingIn] = useActionState(signIn, null);
-  const [demoState, demoAction, demoPending] = useActionState(signInAsDemoForm, null);
 
   return <div className="login-layout">
     <section className="login-card" aria-labelledby="login-title">
@@ -38,10 +38,7 @@ export default function LoginPanel({ initialRole, next }: { initialRole: Role | 
       <span className="eyebrow eyebrow-dark">TANPA DAFTAR</span>
       <h2 id="demo-title">Coba sebagai juri</h2>
       <p>Masuk ke akun demo yang sudah berisi batch, pesanan, dan sinyal permintaan. Data demo direset tiap malam.</p>
-      <form action={demoAction} className="demo-buttons">
-        {ROLES.map((item) => <button key={item} name="role" value={item} className="button button-outline" disabled={demoPending}>Coba sebagai {ROLE_LABEL[item]}</button>)}
-      </form>
-      {demoState?.error && <p className="form-error" role="alert">{demoState.error}</p>}
+      <DemoSignIn />
     </section>
   </div>;
 }

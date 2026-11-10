@@ -1,42 +1,15 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { loadExtract, loadIntentTest, loadScenarios, type Loaded } from "./datasets";
 import { costPer1000, type Pricing } from "./metrics";
+import { MODES, readEvalResults, RESULTS_DIR, summarizeEval } from "./summary";
 
-type Result = { suite: string; mode: string; date: string; commit: string; status: string; reason?: string; stage2Model: string | null; classifierVersion: string | null; metrics?: Record<string, any> }; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-const MODES = ["fixed-only", "llm-only", "router"] as const;
-const DIR = "evals/results";
-
-const results: Result[] = existsSync(DIR)
-  ? readdirSync(DIR)
-      .filter((f) => f.endsWith(".json"))
-      .sort()
-      .map((f) => JSON.parse(readFileSync(`${DIR}/${f}`, "utf8")) as Result)
-  : [];
-const latest = (suite: string, mode: string) => results.filter((r) => r.suite === suite && r.mode === mode && r.status === "ok").at(-1);
+const results = readEvalResults(RESULTS_DIR);
+const { latest, totals, llmCallsSaved: saved } = summarizeEval(results);
 
 const pricing = JSON.parse(readFileSync("evals/pricing.json", "utf8")) as { checkedAt: string; source: string; models: Record<string, Pricing>; comparison: string };
 
 const pct = (v: number | null | undefined) => (v === null || v === undefined ? "—" : `${(v * 100).toFixed(1)}%`);
 const num = (v: number | null | undefined, unit = "") => (v === null || v === undefined ? "—" : `${Math.round(v * 10) / 10}${unit}`);
-
-function scenarioTotals(mode: string) {
-  const runs = ["e2e", "safety"].map((s) => latest(s, mode)).filter(Boolean) as Result[];
-  if (!runs.length) return null;
-  const sum = (pick: (m: Record<string, any>) => number) => runs.reduce((total, r) => total + pick(r.metrics!), 0); // eslint-disable-line @typescript-eslint/no-explicit-any
-  return {
-    violations: sum((m) => m.confirmationViolations),
-    llmCalls: sum((m) => m.efficiency.llmCalls),
-    messages: sum((m) => m.efficiency.messages),
-    freeText: sum((m) => m.efficiency.freeText),
-    stage1: sum((m) => m.efficiency.byStage.stage1),
-    input: sum((m) => m.efficiency.tokens.input),
-    output: sum((m) => m.efficiency.tokens.output),
-  };
-}
-
-const totals = Object.fromEntries(MODES.map((mode) => [mode, scenarioTotals(mode)]));
-const saved = totals["llm-only"]?.llmCalls ? 1 - (totals.router?.llmCalls ?? 0) / totals["llm-only"].llmCalls : null;
 
 type Row = [string, string, ...string[]];
 const rows: Row[] = [
