@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEMO_SCENARIOS, DEMO_STEPS, activeStep } from "./demo-clips";
 
-const timing = { duration: 10, steps: [0.5, 3, 6, 7.6] as [number, number, number, number] };
+const timing = { duration: 10, steps: [0.5, 3, 6, 7.6] };
 
 describe("activeStep", () => {
   it("memilih langkah terakhir yang sudah dimulai", () => {

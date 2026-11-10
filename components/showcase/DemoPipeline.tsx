@@ -50,7 +50,7 @@ export default function DemoPipeline() {
         <video
           key={scenario.id}
           ref={video}
-          src={demoClipPath(scenario.id, "mp4")}
+          src={demoClipPath(scenario.id, "webm")}
           poster={demoClipPath(scenario.id, "jpg")}
           muted
           playsInline
@@ -63,8 +63,10 @@ export default function DemoPipeline() {
         >
           <track kind="captions" src={demoClipPath(scenario.id, "vtt")} srcLang="id" label="Indonesia" />
         </video>
-        <div className="demo-pipeline-caption"><small>{scenario.eyebrow}</small><b>{scenario.title}</b></div>
-        <button type="button" className="demo-pipeline-toggle" onClick={toggle} aria-pressed={!playing}>{playing ? "Jeda" : "Putar"}</button>
+        <div className="demo-pipeline-bar">
+          <div className="demo-pipeline-caption"><small>{scenario.eyebrow}</small><b>{scenario.title}</b></div>
+          <button type="button" className="demo-pipeline-toggle" onClick={toggle} aria-pressed={!playing}>{playing ? "Jeda" : "Putar"}</button>
+        </div>
       </div>
       <aside className="demo-pipeline-side">
         <p>{scenario.description}</p>

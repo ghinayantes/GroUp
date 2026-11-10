@@ -38,11 +38,11 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   },
 ];
 
-export type DemoClipTiming = { duration: number; steps: [number, number, number, number] };
+export type DemoClipTiming = { duration: number; steps: number[] };
 
 export const DEMO_TIMINGS = timings as Record<string, DemoClipTiming>;
 
-export const demoClipPath = (id: string, ext: "mp4" | "jpg" | "vtt") => `/demo/${id}.${ext}`;
+export const demoClipPath = (id: string, ext: "webm" | "jpg" | "vtt") => `/demo/${id}.${ext}`;
 
 export function activeStep(timing: DemoClipTiming | undefined, seconds: number): number {
   if (!timing) return 0;
