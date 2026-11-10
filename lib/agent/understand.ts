@@ -5,7 +5,7 @@ import { extractSlots, parseQuantity, toBatchUnit, type ExtractedSlots } from ".
 import { senderHash, type IntentScore, type Stage2Agent } from "./ports";
 import { redact } from "./redact";
 import { directAction } from "./router";
-import { isGrounded } from "./stage2/grounding";
+import { extractNumbers, isGrounded } from "./stage2/grounding";
 import type { AgentSession, InboundMessage, ProposedAction, TraceRecord } from "./types";
 
 const STAGE2_CALLS_PER_HOUR = 20;
@@ -73,6 +73,20 @@ export async function understandFreeText(msg: InboundMessage, session: AgentSess
   return understood({ type: "menu" }, "fallback", score, slots);
 }
 
+function groundStage2Action(action: ProposedAction, text: string, slots: ExtractedSlots, toolOutputs: unknown[]): ProposedAction {
+  const quantityWritten = slots.quantity !== null || extractNumbers(text).length > 0;
+  switch (action.type) {
+    case "answer":
+      return isGrounded(action.text, toolOutputs) ? action : { type: "menu" };
+    case "confirm_join":
+      return quantityWritten ? action : { type: "ask_quantity", batchId: action.batchId };
+    case "confirm_change":
+      return quantityWritten ? action : { type: "menu" };
+    default:
+      return action;
+  }
+}
+
 async function askStage2(
   stage2: Stage2Agent,
   msg: InboundMessage,
@@ -105,8 +119,7 @@ async function askStage2(
       },
       { orders: deps.orders, marketPrice: deps.marketPrice, channel: msg.channel, senderKey: msg.senderKey, batches: ctx.batches },
     );
-    const grounded = result.action.type !== "answer" || isGrounded(result.action.text, result.toolOutputs);
-    const action: ProposedAction = grounded ? result.action : { type: "menu" };
+    const action = groundStage2Action(result.action, msg.text, slots, result.toolOutputs);
     const base = understood(action, "stage2", score, slots);
     return {
       action,
