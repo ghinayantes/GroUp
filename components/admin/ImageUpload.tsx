@@ -27,12 +27,16 @@ export default function ImageUpload({ value, onChange, onBusyChange }: Props) {
   const input = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    onBusyChange(busy || pending !== null);
+  }, [busy, pending, onBusyChange]);
+
+  useEffect(() => {
     if (!preview) return;
     return () => URL.revokeObjectURL(preview);
   }, [preview]);
 
   async function upload(blob: Blob) {
-    setBusy(true); onBusyChange(true); setError("");
+    setBusy(true); setError("");
     try {
       const path = await uploadBlob(blob);
       setPending(null);
@@ -41,7 +45,7 @@ export default function ImageUpload({ value, onChange, onBusyChange }: Props) {
       setPending(blob);
       setError(cause instanceof UploadError ? cause.message : "Upload gagal.");
     } finally {
-      setBusy(false); onBusyChange(false);
+      setBusy(false);
     }
   }
 
@@ -49,13 +53,13 @@ export default function ImageUpload({ value, onChange, onBusyChange }: Props) {
     if (!file || busy) return;
     const invalid = imageInputError(file);
     if (invalid) { setError(invalid); return; }
-    setBusy(true); onBusyChange(true); setError("");
+    setBusy(true); setError("");
     let blob: Blob;
     try {
       blob = await resizeToWebp(file);
     } catch {
       setError("Foto tidak dapat dibaca. Coba foto lain.");
-      setBusy(false); onBusyChange(false);
+      setBusy(false);
       return;
     }
     setPreview(URL.createObjectURL(blob));
