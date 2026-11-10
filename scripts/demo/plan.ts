@@ -50,6 +50,22 @@ const INTEREST_SPECS: { material: string; unit: string | null; frequency: "sekal
   { material: "cabe rawit", unit: "kg", frequency: "mingguan", quantity: 3, senders: [9, 12, 15], ageDays: [2, 6, 27] },
 ];
 
+/**
+ * Persen harga pasar untuk tier 1 dan tier 2. Patungan hanya memangkas sebagian margin
+ * perdagangan dan pengangkutan (MPP) BPS: cabai ±25%, bawang merah ±23%, daging ayam ±12%,
+ * beras/minyak/gula/telur ±9–11%. Tier 1 ±⅓ MPP, tier 2 ±½ MPP.
+ */
+const TIER_PCT: Record<string, [number, number]> = {
+  cabai_merah_keriting: [92, 88],
+  bawang_merah: [93, 89],
+  bawang_putih: [93, 89],
+  daging_ayam_ras: [96, 94],
+  telur_ayam_ras: [97, 95],
+  beras_medium: [97, 95],
+  gula_pasir: [97, 95],
+  minyak_goreng_curah: [97, 95],
+};
+
 export const DEMO_SENDER_PREFIX = "demo-seed-";
 
 /** Dibulatkan ke bawah ke Rp100. */
@@ -104,8 +120,8 @@ export function buildDemoPlan(input: PlanInput): DemoPlan {
     if (!market) throw new Error(`Harga pasar ${spec.commodity} tidak ada di prediksi.json`);
     const id = uuid();
     const tiers: PriceTier[] = [
-      { minQuantity: spec.minimum, unitPrice: priceAt(market.harga_terakhir, 97) },
-      { minQuantity: Math.round(spec.minimum * 1.5), unitPrice: priceAt(market.harga_terakhir, 92) },
+      { minQuantity: spec.minimum, unitPrice: priceAt(market.harga_terakhir, TIER_PCT[spec.commodity][0]) },
+      { minQuantity: Math.round(spec.minimum * 1.5), unitPrice: priceAt(market.harga_terakhir, TIER_PCT[spec.commodity][1]) },
     ];
     const quantities = [...spec.fillers, ...(spec.buyer ? [spec.buyer.quantity] : [])];
     const total = quantities.reduce((sum, quantity) => sum + quantity, 0);

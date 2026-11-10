@@ -24,8 +24,19 @@ describe("buildDemoPlan", () => {
   it("tier di bawah harga pasar dan turun di tier kedua", () => {
     const cabai = plan.batches.find((batch) => batch.material_name === "Cabai Merah Keriting")!;
     const tiers = plan.tiers.filter((tier) => tier.patungan_id === cabai.id);
-    expect(tiers.map((tier) => tier.unit_price)).toEqual([priceAt(94100, 97), priceAt(94100, 92)]);
+    expect(tiers.map((tier) => tier.unit_price)).toEqual([priceAt(94100, 92), priceAt(94100, 88)]);
     expect(tiers[1].unit_price).toBeLessThan(tiers[0].unit_price);
+  });
+
+  it("hemat tiap batch tetap dalam batas margin distribusi: 3–12% dari harga pasar", () => {
+    for (const batch of plan.batches) {
+      const market = prediksi.prediksi.find((row) => row.komoditas.replace(/_/g, " ") === (batch.material_name as string).toLowerCase())!;
+      for (const tier of plan.tiers.filter((row) => row.patungan_id === batch.id)) {
+        const saving = Math.round((1 - tier.unit_price / market.harga_terakhir) * 100);
+        expect(saving).toBeGreaterThanOrEqual(3);
+        expect(saving).toBeLessThanOrEqual(12);
+      }
+    }
   });
 
   it("batch berhasil mencapai minimum, harga final dari tier yang tercapai, pesanan ditagih", () => {

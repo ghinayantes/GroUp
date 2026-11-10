@@ -65,6 +65,21 @@ npm run demo:seed
 
 Di `/masuk`, pilih **Coba sebagai Pembeli / Grosir / Admin** untuk langsung masuk tanpa mengetik kata sandi. Data demo kembali ke keadaan awal setiap malam.
 
+Seed membuat 8 batch bahan pokok dengan harga yang mengikuti pasar Bandung. Patungan hanya memangkas sebagian margin distribusi, jadi hematnya 3–12%, bukan separuh harga:
+
+| Batch | Status | Tier 1 / tier 2 (% harga PIHPS) |
+|---|---|---|
+| Cabai Merah Keriting | Terbuka | 92% / 88% |
+| Bawang Merah | Terbuka | 93% / 89% |
+| Telur Ayam Ras | Terbuka | 97% / 95% |
+| Daging Ayam Ras | Terbuka | 96% / 94% |
+| Beras Medium | Berhasil, menunggu bayar | 97% / 95% |
+| Gula Pasir | Berhasil, siap diambil | 97% / 95% |
+| Minyak Goreng Curah | Berhasil, sudah diambil | 97% / 95% |
+| Bawang Putih | Tidak tercapai | 93% / 89% |
+
+Dasarnya margin perdagangan dan pengangkutan BPS: cabai ±25%, bawang ±23%, daging ayam ±12%, beras, minyak, gula, dan telur ±9–11%. Tier 1 memangkas sekitar sepertiga margin itu, tier 2 sekitar setengahnya.
+
 ## Isi repo
 
 | Folder | Isi |
@@ -181,7 +196,7 @@ npm run demo:seed                  # idempoten; memakai SUPABASE_SECRET_KEY
 npm run demo:seed -- --tanpa-llm   # trace simulasi tanpa memanggil LLM tahap 2
 ```
 
-Skrip ini membuat 3 akun demo, supplier "Grosir Demo" (terverifikasi, milik akun grosir demo), 8 batch bahan PIHPS di berbagai status, pesanan pembeli demo, ±36 minat permintaan dari 15 pengirim fiktif, dan ±200 trace agen dari skenario simulator. Bila tahap 2 dikonfigurasi, skenario memakai LLM dengan cache di `evals/cache/demo-seed`, jadi pesan yang berulang hanya memanggil model sekali.
+Skrip ini membuat 3 akun demo, supplier "Grosir Demo" (terverifikasi, milik akun grosir demo), 8 batch bahan PIHPS di berbagai status (persen tier per komoditas ada di `TIER_PCT`, `scripts/demo/plan.ts`), pesanan pembeli demo, ±36 minat permintaan dari 15 pengirim fiktif, dan ±200 trace agen dari skenario simulator. Bila tahap 2 dikonfigurasi, skenario memakai LLM dengan cache di `evals/cache/demo-seed`, jadi pesan yang berulang hanya memanggil model sekali.
 
 Di `/masuk`, blok "Coba sebagai juri" login ke akun demo lewat server action, jadi kata sandi tidak pernah dikirim ke browser. `reset_demo_data()` berjalan setiap malam lewat `cleanup_agent_data()`: data buatan akun demo setelah seed dihapus dan data seed dikembalikan ke keadaan awal.
 
