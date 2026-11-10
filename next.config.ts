@@ -1,13 +1,17 @@
 import type { NextConfig } from "next";
 
-// File tracing does not follow onnxruntime-node's native binary or its CommonJS dependency; without these the
-// deployed function fails with "Cannot find module onnxruntime-common/dist/cjs". Only the build platform's binary is copied.
-const intentClassifierFiles = [
-  "./models/intent-classifier/**",
-  "./node_modules/onnxruntime-node/package.json",
-  "./node_modules/onnxruntime-node/dist/**",
-  `./node_modules/onnxruntime-node/bin/napi-v6/${process.platform}/${process.arch}/**`,
-  "./node_modules/onnxruntime-common/dist/cjs/**",
+// Classifier tahap 1 baru dimuat bila models/intent-classifier/onnx/model_quantized.onnx ada. Selama model belum
+// dicommit, runtime ONNX dan Transformers tidak pernah dipakai tapi ikut ter-trace (±250 MB per fungsi).
+// Saat model ditambahkan, hapus exclude ini dan sertakan model, onnxruntime-node (binary platform build),
+// serta onnxruntime-common/dist/cjs lewat outputFileTracingIncludes.
+const unusedClassifierRuntime = [
+  "./node_modules/onnxruntime-node/**",
+  "./node_modules/onnxruntime-common/**",
+  "./node_modules/onnxruntime-web/**",
+  "./node_modules/@huggingface/transformers/**",
+  "./node_modules/sharp/**",
+  "./node_modules/@img/**",
+  "./lib/agent/stage1/__fixtures__/**",
 ];
 
 const nextConfig: NextConfig = {
@@ -20,8 +24,10 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     // Strip metrik di halaman depan membaca hasil eval dan data uji saat request.
     "/": ["./evals/results/**", "./ai/data/test.jsonl"],
-    "/api/whatsapp/webhook": intentClassifierFiles,
-    "/api/simulator/message": intentClassifierFiles,
+  },
+  outputFileTracingExcludes: {
+    "/api/whatsapp/webhook": unusedClassifierRuntime,
+    "/api/simulator/message": unusedClassifierRuntime,
   },
 };
 
