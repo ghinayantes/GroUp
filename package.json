@@ -16,7 +16,8 @@
     "model:calibrate": "tsx --conditions=react-server ai/data/calibrate.ts",
     "eval": "tsx --conditions=react-server --env-file-if-exists=.env.local evals/run.ts",
     "eval:report": "tsx evals/report.ts",
-    "demo:seed": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/demo/seed.ts"
+    "demo:seed": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/demo/seed.ts",
+    "demo:record": "tsx --env-file-if-exists=.env.local scripts/demo/record.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.114",
@@ -37,6 +38,7 @@
     "@vercel/config": "0.14.1",
     "eslint": "9.38.0",
     "eslint-config-next": "16.4.3",
+    "playwright": "1.65.0",
     "server-only": "0.0.1",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
