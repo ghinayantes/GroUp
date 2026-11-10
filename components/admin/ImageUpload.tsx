@@ -7,12 +7,14 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type Props = { value: string | null; onChange: (path: string | null) => void; onBusyChange: (busy: boolean) => void };
 
+class UploadError extends Error {}
+
 async function uploadBlob(blob: Blob) {
   const response = await fetch("/api/uploads/batch-image", { method: "POST" });
   const result = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(result.error || "Upload gagal.");
+  if (!response.ok) throw new UploadError(result.error || "Upload gagal.");
   const { error } = await createSupabaseBrowserClient().storage.from(BATCH_IMAGE_BUCKET).uploadToSignedUrl(result.path, result.token, blob, { contentType: "image/webp" });
-  if (error) throw new Error("Upload gagal.");
+  if (error) throw new UploadError("Upload gagal.");
   return result.path as string;
 }
 
@@ -37,7 +39,7 @@ export default function ImageUpload({ value, onChange, onBusyChange }: Props) {
       onChange(path);
     } catch (cause) {
       setPending(blob);
-      setError(cause instanceof Error ? cause.message : "Upload gagal.");
+      setError(cause instanceof UploadError ? cause.message : "Upload gagal.");
     } finally {
       setBusy(false); onBusyChange(false);
     }
