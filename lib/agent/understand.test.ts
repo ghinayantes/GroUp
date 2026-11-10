@@ -148,6 +148,26 @@ describe("understandFreeText tahap 2", () => {
     expect(result.trace).toMatchObject({ stage: "stage2", action: "menu", tools: ["detail_batch"] });
   });
 
+  it('confirm_join dengan kuantitas karangan ("mau ikut cabe") → ask_quantity', async () => {
+    const { context } = await setup({ stage2: fakeStage2({ action: { type: "confirm_join", batchId: CABAI.id, quantity: 1 } }) });
+    const msg = message("mau ikut cabe");
+    const result = await understandFreeText(msg, null, await context(msg));
+    expect(result.action).toEqual({ type: "ask_quantity", batchId: CABAI.id });
+    expect(result.trace).toMatchObject({ stage: "stage2", action: "ask_quantity" });
+  });
+
+  it("confirm_change tanpa kuantitas di pesan → menu", async () => {
+    const { context } = await setup({ stage2: fakeStage2({ action: { type: "confirm_change", orderCode: "ABC123", quantity: 1 } }) });
+    const msg = message("pesanan yg kemarin diubah ya");
+    expect((await understandFreeText(msg, null, await context(msg))).action).toEqual({ type: "menu" });
+  });
+
+  it("confirm_join dengan kuantitas tertulis (kata bilangan) tetap dipakai", async () => {
+    const { context } = await setup({ stage2: fakeStage2({ action: { type: "confirm_join", batchId: CABAI.id, quantity: 2 } }) });
+    const msg = message("cabe dua kilo ya kak");
+    expect((await understandFreeText(msg, null, await context(msg))).action).toEqual({ type: "confirm_join", batchId: CABAI.id, quantity: 2 });
+  });
+
   it("answer grounded → answer", async () => {
     const stage2 = fakeStage2({ action: { type: "answer", text: "Harganya Rp12.000/kg" }, toolOutputs: [{ harga: 12000 }] });
     const { context } = await setup({ stage2 });
