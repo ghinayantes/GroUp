@@ -120,6 +120,16 @@ describe("POST /api/admin/patungans", () => {
     expect(rpc).not.toHaveBeenCalled();
   });
 
+  it("exists melempar error jaringan → 400 Gambar belum terupload.", async () => {
+    exists.mockRejectedValue(new TypeError("fetch failed"));
+
+    const response = await post(validBody({ imagePath: `${USER}/${IMAGE}.webp` }));
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "Gambar belum terupload." });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("exists mengembalikan error → 400 Gambar belum terupload.", async () => {
     exists.mockResolvedValue({ data: null, error: { message: "boom" } });
 

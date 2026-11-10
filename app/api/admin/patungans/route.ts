@@ -53,8 +53,8 @@ export async function POST(request: Request) {
   if (imagePath) {
     if (!userId || !isOwnedImagePath(imagePath, userId)) return NextResponse.json({ error: "Gambar tidak valid." }, { status: 400 });
     const bucket = supabase.storage.from(BATCH_IMAGE_BUCKET);
-    const { data: found, error: existsError } = await bucket.exists(imagePath);
-    if (existsError || !found) return NextResponse.json({ error: "Gambar belum terupload." }, { status: 400 });
+    const uploaded = await bucket.exists(imagePath).then(({ data, error: existsError }) => !existsError && data, () => false);
+    if (!uploaded) return NextResponse.json({ error: "Gambar belum terupload." }, { status: 400 });
     imageUrl = bucket.getPublicUrl(imagePath).data.publicUrl;
   }
 
