@@ -18,7 +18,7 @@ const links = [
   { href: "/simulator", label: "Coba simulator" },
 ];
 
-export default function SiteHeader({ categories }: { categories: CategorySummary[] }) {
+export default function SiteHeader({ categories, account }: { categories: CategorySummary[]; account: { href: string; label: string } }) {
   const pathname = usePathname();
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
   const navRef = useRef<HTMLElement>(null);
@@ -47,7 +47,7 @@ export default function SiteHeader({ categories }: { categories: CategorySummary
       </Form>
       <nav className="header-icons" aria-label="Akun">
         <Link href="/pesanan" aria-label="Kelola pesanan" title="Kelola pesanan"><Icon name="bag" /></Link>
-        <Link href="/admin" aria-label="Area pengelola" title="Area pengelola"><Icon name="user" /></Link>
+        <Link href={account.href} className="header-login"><Icon name="user" size={18} /><span>{account.label}</span></Link>
       </nav>
     </div>
     <nav ref={navRef} className="main-nav" aria-label="Navigasi utama">

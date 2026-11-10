@@ -1,28 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { isOwnedImagePath } from "@/lib/batch-image";
+import type { CurrentUser } from "@/lib/roles";
 
 const USER = "11111111-1111-4111-8111-111111111111";
 
-const guardAdmin = vi.fn();
-const currentUserId = vi.fn();
+const currentUser = vi.fn<() => Promise<CurrentUser | null>>();
 const createSignedUploadUrl = vi.fn();
 const from = vi.fn(() => ({ createSignedUploadUrl }));
 
-vi.mock("@/lib/admin-route", () => ({ guardAdmin: () => guardAdmin() }));
+vi.mock("@/lib/auth", () => ({ currentUser: () => currentUser() }));
 vi.mock("@/lib/supabase/server", () => ({
+  hasSupabaseSecret: () => true,
   createSupabaseAdminClient: () => ({ storage: { from } }),
-  currentUserId: () => currentUserId(),
 }));
 
 const { POST } = await import("./route");
 
+const as = (role: CurrentUser["role"]): CurrentUser => ({ id: USER, role, demo: false, email: null });
+
 beforeEach(() => {
-  guardAdmin.mockReset();
-  currentUserId.mockReset();
+  currentUser.mockReset();
   createSignedUploadUrl.mockReset();
   from.mockClear();
-  guardAdmin.mockResolvedValue(null);
-  currentUserId.mockResolvedValue(USER);
+  currentUser.mockResolvedValue(as("admin"));
   createSignedUploadUrl.mockImplementation(async (path: string) => ({
     data: { signedUrl: "https://x/upload", token: "token-1", path },
     error: null,
@@ -30,9 +30,8 @@ beforeEach(() => {
 });
 
 describe("POST /api/uploads/batch-image", () => {
-  it("guardAdmin mengembalikan 403 → 403 dan createSignedUploadUrl tidak dipanggil", async () => {
-    const { NextResponse } = await import("next/server");
-    guardAdmin.mockResolvedValue(NextResponse.json({ error: "Akses admin diperlukan." }, { status: 403 }));
+  it.each([["anonim", null], ["pembeli", as("pembeli")]])("%s → 403 dan createSignedUploadUrl tidak dipanggil", async (_label, user) => {
+    currentUser.mockResolvedValue(user);
 
     const response = await POST();
 
@@ -40,17 +39,9 @@ describe("POST /api/uploads/batch-image", () => {
     expect(createSignedUploadUrl).not.toHaveBeenCalled();
   });
 
-  it("tanpa user id → 401", async () => {
-    currentUserId.mockResolvedValue(null);
+  it.each(["admin", "grosir"] as const)("%s → 201 dengan path milik user dan token", async (role) => {
+    currentUser.mockResolvedValue(as(role));
 
-    const response = await POST();
-
-    expect(response.status).toBe(401);
-    expect(await response.json()).toEqual({ error: "Sesi tidak valid." });
-    expect(createSignedUploadUrl).not.toHaveBeenCalled();
-  });
-
-  it("admin → 201 dengan path milik user dan token", async () => {
     const response = await POST();
     const body = await response.json();
 

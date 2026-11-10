@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Lets phones on the same Wi-Fi load dev JS via the laptop's LAN IP; without it buttons don't respond.
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "172.*.*.*"],
+  async redirects() {
+    return [{ source: "/admin/login", destination: "/masuk?peran=admin", permanent: true }];
+  },
   outputFileTracingIncludes: {
     "/api/whatsapp/webhook": intentClassifierFiles,
     "/api/simulator/message": intentClassifierFiles,

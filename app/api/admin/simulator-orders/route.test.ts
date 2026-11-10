@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/admin-route", () => ({ guardAdmin: vi.fn() }));
+vi.mock("@/lib/route-guard", () => ({ guardRole: vi.fn() }));
 vi.mock("@/lib/orders", () => ({ purgeSimulatorOrders: vi.fn() }));
 
 const { DELETE } = await import("./route");
-const { guardAdmin } = await import("@/lib/admin-route");
+const { guardRole } = await import("@/lib/route-guard");
+const ADMIN = { user: { id: "a1", role: "admin" as const, demo: false, email: null }, denied: null };
 const { purgeSimulatorOrders } = await import("@/lib/orders");
 
 beforeEach(() => {
-  vi.mocked(guardAdmin).mockReset();
+  vi.mocked(guardRole).mockReset();
   vi.mocked(purgeSimulatorOrders).mockReset();
 });
 
 describe("DELETE /api/admin/simulator-orders", () => {
   it("bukan admin ditolak tanpa menghapus", async () => {
-    vi.mocked(guardAdmin).mockResolvedValue(NextResponse.json({ error: "Akses admin diperlukan." }, { status: 403 }));
+    vi.mocked(guardRole).mockResolvedValue({ user: null, denied: NextResponse.json({ error: "Akses ditolak." }, { status: 403 }) });
 
     const response = await DELETE();
 
@@ -24,7 +25,7 @@ describe("DELETE /api/admin/simulator-orders", () => {
   });
 
   it("admin menghapus dan menerima jumlahnya", async () => {
-    vi.mocked(guardAdmin).mockResolvedValue(null);
+    vi.mocked(guardRole).mockResolvedValue(ADMIN);
     vi.mocked(purgeSimulatorOrders).mockResolvedValue(4);
 
     const response = await DELETE();
@@ -34,7 +35,7 @@ describe("DELETE /api/admin/simulator-orders", () => {
   });
 
   it("kegagalan database dibalas 500", async () => {
-    vi.mocked(guardAdmin).mockResolvedValue(null);
+    vi.mocked(guardRole).mockResolvedValue(ADMIN);
     vi.mocked(purgeSimulatorOrders).mockRejectedValue(new Error("Pesanan simulator tidak dapat dihapus."));
 
     const response = await DELETE();

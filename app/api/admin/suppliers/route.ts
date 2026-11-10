@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { guardAdmin, readJson } from "@/lib/admin-route";
+import { guardRole, readJson } from "@/lib/route-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 /** Menambah supplier baru; status verifikasi ditetapkan terpisah setelah pemeriksaan manual. */
 export async function POST(request: Request) {
-  const denied = await guardAdmin();
+  const { denied } = await guardRole("admin");
   if (denied) return denied;
   const body = await readJson(request);
   const name = typeof body?.name === "string" ? body.name.trim() : "";

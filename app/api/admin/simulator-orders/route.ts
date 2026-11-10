@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { guardAdmin } from "@/lib/admin-route";
+import { guardRole } from "@/lib/route-guard";
 import { purgeSimulatorOrders } from "@/lib/orders";
 
 export async function DELETE() {
-  const denied = await guardAdmin();
+  const { denied } = await guardRole("admin");
   if (denied) return denied;
   try {
     return NextResponse.json({ deleted: await purgeSimulatorOrders() });

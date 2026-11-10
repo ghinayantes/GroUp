@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { badId, guardAdmin, readJson } from "@/lib/admin-route";
+import { badId, guardRole, readJson } from "@/lib/route-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 type Context = { params: Promise<{ id: string }> };
 
 /** Pencatatan manual status pembayaran dan penyerahan per pesanan (hanya batch berhasil). */
 export async function PATCH(request: Request, { params }: Context) {
-  const denied = await guardAdmin();
+  const { denied } = await guardRole("admin");
   if (denied) return denied;
   const { id } = await params;
   const invalid = badId(id);

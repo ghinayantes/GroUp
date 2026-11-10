@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { readJson } from "@/lib/admin-route";
+import { readJson } from "@/lib/route-guard";
 import { getEngine } from "@/lib/agent/runtime";
 import type { InboundMessage } from "@/lib/agent/types";
 

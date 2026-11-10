@@ -5,17 +5,16 @@ const OTHER = "22222222-2222-4222-8222-222222222222";
 const SUPPLIER = "33333333-3333-4333-8333-333333333333";
 const IMAGE = "44444444-4444-4444-8444-444444444444";
 
-const guardAdmin = vi.fn();
-const currentUserId = vi.fn();
+const guardRole = vi.fn();
 const rpc = vi.fn();
 const exists = vi.fn();
 const getPublicUrl = vi.fn();
 const maybeSingle = vi.fn();
 const storageFrom = vi.fn(() => ({ exists, getPublicUrl }));
 
-vi.mock("@/lib/admin-route", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/admin-route")>("@/lib/admin-route");
-  return { ...actual, guardAdmin: () => guardAdmin() };
+vi.mock("@/lib/route-guard", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/route-guard")>("@/lib/route-guard");
+  return { ...actual, guardRole: (...roles: string[]) => guardRole(...roles) };
 });
 vi.mock("@/lib/supabase/server", () => ({
   createSupabaseAdminClient: () => ({
@@ -23,7 +22,6 @@ vi.mock("@/lib/supabase/server", () => ({
     rpc,
     storage: { from: storageFrom },
   }),
-  currentUserId: () => currentUserId(),
 }));
 
 const { POST } = await import("./route");
@@ -48,15 +46,13 @@ function post(body: Record<string, unknown>) {
 }
 
 beforeEach(() => {
-  guardAdmin.mockReset();
-  currentUserId.mockReset();
+  guardRole.mockReset();
   rpc.mockReset();
   exists.mockReset();
   getPublicUrl.mockReset();
   maybeSingle.mockReset();
   storageFrom.mockClear();
-  guardAdmin.mockResolvedValue(null);
-  currentUserId.mockResolvedValue(USER);
+  guardRole.mockResolvedValue({ user: { id: USER, role: "admin", demo: false, email: null }, denied: null });
   maybeSingle.mockResolvedValue({ data: { id: SUPPLIER } });
   rpc.mockResolvedValue({ data: "id", error: null });
   exists.mockResolvedValue({ data: true, error: null });
@@ -64,6 +60,17 @@ beforeEach(() => {
 });
 
 describe("POST /api/admin/patungans", () => {
+  it("hanya untuk admin", async () => {
+    const { NextResponse } = await import("next/server");
+    guardRole.mockResolvedValue({ user: null, denied: NextResponse.json({ error: "x" }, { status: 403 }) });
+
+    const response = await post(validBody());
+
+    expect(response.status).toBe(403);
+    expect(guardRole).toHaveBeenCalledWith("admin");
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
   it("tanpa imagePath → 201 dan p_image_url null", async () => {
     const response = await post(validBody());
 
@@ -94,16 +101,6 @@ describe("POST /api/admin/patungans", () => {
 
   it("imagePath dengan ../ → 400 Gambar tidak valid.", async () => {
     const response = await post(validBody({ imagePath: `${USER}/../${IMAGE}.webp` }));
-
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: "Gambar tidak valid." });
-    expect(rpc).not.toHaveBeenCalled();
-  });
-
-  it("imagePath ada tapi user id tidak ada → 400 Gambar tidak valid.", async () => {
-    currentUserId.mockResolvedValue(null);
-
-    const response = await post(validBody({ imagePath: `${USER}/${IMAGE}.webp` }));
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "Gambar tidak valid." });
