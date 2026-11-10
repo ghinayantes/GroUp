@@ -17,7 +17,8 @@
     "eval": "tsx --conditions=react-server --env-file-if-exists=.env.local evals/run.ts",
     "eval:report": "tsx evals/report.ts",
     "demo:seed": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/demo/seed.ts",
-    "demo:record": "tsx --env-file-if-exists=.env.local scripts/demo/record.ts"
+    "demo:record": "tsx --env-file-if-exists=.env.local scripts/demo/record.ts",
+    "demo:clips": "tsx --env-file-if-exists=.env.local scripts/demo/clips.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "4.0.114",
