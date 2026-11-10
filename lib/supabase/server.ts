@@ -43,3 +43,11 @@ export async function isCurrentUserAdmin() {
   const { data, error } = await supabase.auth.getClaims();
   return !error && data?.claims?.app_metadata?.role === "admin";
 }
+
+export async function currentUserId() {
+  if (!hasSupabaseConfig()) return null;
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.auth.getClaims();
+  const sub = data?.claims?.sub;
+  return !error && typeof sub === "string" ? sub : null;
+}
