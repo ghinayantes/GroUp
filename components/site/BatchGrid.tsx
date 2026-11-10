@@ -5,6 +5,7 @@ import Link from "next/link";
 import OrderForm from "@/components/OrderForm";
 import Icon from "@/components/site/Icon";
 import Modal from "@/components/site/Modal";
+import { FairPriceBadge } from "@/components/trust/FairPrice";
 import { daysLeft, formatQuantity, percentOf, resolveTiers, rupiah, type Batch } from "@/lib/batch";
 
 function BatchCard({ batch, index, onJoin }: { batch: Batch; index: number; onJoin: () => void }) {
@@ -25,6 +26,7 @@ function BatchCard({ batch, index, onJoin }: { batch: Batch; index: number; onJo
         <div className="price">{rupiah(current?.unitPrice ?? 0)}<span>/{batch.unit}</span></div>
         {next && <div className="next-price">turun ke <b>{rupiah(next.unitPrice)}</b> di {formatQuantity(next.minQuantity)} {batch.unit}</div>}
       </div>
+      {batch.fairPrice && <FairPriceBadge fair={batch.fairPrice} />}
       <div className="card-progress">
         <div className="progress-track"><span style={{ width: `${percent}%` }} /></div>
         <div className="progress-caption"><span><b>{formatQuantity(batch.current)}</b> / {formatQuantity(batch.minimum)} {batch.unit}</span><span>{percent}%</span></div>

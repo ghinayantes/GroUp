@@ -1,6 +1,8 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
+import { createMarketPricePort } from "@/lib/agent/adapters/market-price";
 import { isValidQuantity, type Batch, type BatchStatus } from "@/lib/batch";
+import { fairPrice } from "@/lib/trust/fair-price";
 import { isUuid } from "@/lib/uuid";
 import { demoBatches } from "@/lib/demo-data";
 import { createSupabaseAdminClient, hasSupabaseSecret } from "@/lib/supabase/server";
@@ -62,30 +64,36 @@ async function hydrateBatches(rows: BatchRow[]): Promise<Batch[]> {
   const completed = new Map<string, number>();
   historyResult.data.forEach((row) => completed.set(row.supplier_id, (completed.get(row.supplier_id) ?? 0) + 1));
 
-  return rows.map((row) => {
+  const market = createMarketPricePort();
+  return Promise.all(rows.map(async (row) => {
     const supplier = Array.isArray(row.suppliers) ? row.suppliers[0] : row.suppliers;
     const status = row.status as BatchStatus;
+    const tiers = (row.patungan_price_tiers ?? []).map((tier) => ({ minQuantity: Number(tier.min_quantity), unitPrice: Number(tier.unit_price) }));
+    const current = status === "open" ? totals.get(row.id) ?? 0 : Number(row.final_quantity ?? totals.get(row.id) ?? 0);
+    const finalUnitPrice = row.final_unit_price === null ? null : Number(row.final_unit_price);
     return {
       id: row.id,
       name: row.material_name,
       category: row.category,
       unit: row.unit,
+      supplierId: row.supplier_id,
       supplier: supplier?.display_name ?? "Supplier",
       verified: Boolean(supplier?.is_verified),
       supplierCompletedBatches: completed.get(row.supplier_id) ?? 0,
       image: row.image_url ?? "",
       color: "#ead7c4",
-      current: status === "open" ? totals.get(row.id) ?? 0 : Number(row.final_quantity ?? totals.get(row.id) ?? 0),
+      current,
       minimum: Number(row.min_quantity),
       closesAt: row.closes_at,
       status,
       acceptingOrders: status === "open" && new Date(row.closes_at).getTime() > Date.now(),
-      tiers: (row.patungan_price_tiers ?? []).map((tier) => ({ minQuantity: Number(tier.min_quantity), unitPrice: Number(tier.unit_price) })),
+      tiers,
       paymentInstructions: row.payment_instructions,
       fulfillmentPlan: row.fulfillment_plan,
-      finalUnitPrice: row.final_unit_price === null ? null : Number(row.final_unit_price),
+      finalUnitPrice,
+      fairPrice: fairPrice({ tiers, current, unit: row.unit, finalUnitPrice }, await market.lookup(row.material_name, null)),
     };
-  });
+  }));
 }
 
 export async function listOpenBatches(): Promise<Batch[]> {

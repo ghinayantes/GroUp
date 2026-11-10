@@ -1,8 +1,11 @@
 import Link from "next/link";
 import OrderForm from "@/components/OrderForm";
+import { FairPricePanel } from "@/components/trust/FairPrice";
+import SupplierTrustCard from "@/components/trust/SupplierTrustCard";
+import type { SupplierTrust } from "@/lib/trust/supplier-trust";
 import { categorySlug, daysLeft, formatDeadline, formatQuantity, resolveTiers, rupiah, statusLabel, type Batch } from "@/lib/batch";
 
-export default function BatchDetail({ batch, whatsappNumber }: { batch: Batch; whatsappNumber?: string }) {
+export default function BatchDetail({ batch, trust, whatsappNumber }: { batch: Batch; trust: SupplierTrust | null; whatsappNumber?: string }) {
   const { tiers, current, next } = resolveTiers(batch);
   const open = batch.acceptingOrders;
   const percent = Math.min(100, Math.round((batch.current / batch.minimum) * 100));
@@ -31,6 +34,8 @@ export default function BatchDetail({ batch, whatsappNumber }: { batch: Batch; w
           <div className="progress-caption"><span>{percent}% dari kuota minimum</span><span>Deadline {formatDeadline(batch.closesAt)}</span></div>
         </div>
 
+        {batch.fairPrice && <FairPricePanel fair={batch.fairPrice} />}
+
         <h2>Harga bertingkat</h2>
         <table className="tier-table">
           <thead><tr><th>Total batch</th><th>Harga / {batch.unit}</th><th /></tr></thead>
@@ -43,6 +48,8 @@ export default function BatchDetail({ batch, whatsappNumber }: { batch: Batch; w
             </tr>;
           })}</tbody>
         </table>
+
+        {trust && <SupplierTrustCard trust={trust} />}
 
         <h2>Aturan batch</h2>
         <dl className="detail-rules">

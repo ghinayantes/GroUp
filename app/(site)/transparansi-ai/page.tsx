@@ -28,6 +28,13 @@ const stages = [
   { icon: "check" as const, title: "Konfirmasi dengan tombol", body: "Usulan AI untuk ikut batch, mengubah, membatalkan, atau mencatat minat selalu muncul sebagai tombol. Tidak ada yang tersimpan sebelum kamu menekan tombol konfirmasi." },
 ];
 
+const trustFeatures = [
+  { title: "Cek harga wajar", body: "Harga patungan dibandingkan dengan harga PIHPS Kota Bandung untuk bahan dan satuan yang sama. Nama bahan dicocokkan otomatis; kalau tidak cocok dengan yakin atau satuannya berbeda, perbandingan tidak ditampilkan. Prediksi bulan depan berasal dari model statistik, dengan nama model dan galat validasinya." },
+  { title: "Rekam jejak supplier", body: "Fakta diambil dari database: status verifikasi, batch selesai, persentase batch berhasil, dan pesanan yang sudah diserahkan. Model bahasa hanya menulis ringkasan 1–2 kalimat dari fakta itu. Ringkasan dengan angka atau bulan yang tidak ada di fakta ditolak dan diganti kalimat template. Tabel fakta selalu tampil di sampingnya." },
+  { title: "Radar permintaan", body: "Minat yang dicatat agen dari WhatsApp dan simulator dikelompokkan per bahan untuk grosir. Hanya jumlah dan tren yang ditampilkan, tanpa identitas pengirim, dan bahan dengan kurang dari 2 pengirim disembunyikan." },
+  { title: "Asisten buka batch", body: "Saran tier 95% dan 90% dari harga pasar serta kuota dari permintaan mingguan dihitung dengan rumus, bukan dikarang model. Grosir tetap menentukan harganya sendiri." },
+];
+
 export default function AiTransparencyPage() {
   const selected = selectStage2Model(process.env);
   const provider = selected ? PROVIDER_INFO[selected.provider] : null;
@@ -84,6 +91,13 @@ export default function AiTransparencyPage() {
           <li>Harga pasar adalah data bulanan PIHPS Kota Bandung; prediksi bulan depan bukan jaminan</li>
         </ul>
       </article>
+    </section>
+
+    <section className="section">
+      <div className="section-head"><div><span className="eyebrow">Label “Dibantu AI”</span><h2>AI untuk kepercayaan</h2></div></div>
+      <div className="info-grid">
+        {trustFeatures.map((feature) => <article key={feature.title} className="info-card"><h3>{feature.title}</h3><p>{feature.body}</p></article>)}
+      </div>
     </section>
 
     <section className="section">

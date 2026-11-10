@@ -6,6 +6,7 @@ const DAY_MS = 86_400_000;
 const inDays = (days: number) => new Date(FIXTURE_NOW.getTime() + days * DAY_MS).toISOString();
 
 const base = {
+  supplierId: "00000000-0000-4000-8000-0000000000f1",
   supplier: "Mitra Tani Contoh",
   verified: true,
   supplierCompletedBatches: 5,
@@ -17,6 +18,7 @@ const base = {
   paymentInstructions: "Transfer ke rekening yang dikirim admin setelah kuota tercapai.",
   fulfillmentPlan: "Barang diambil di titik kumpul yang diumumkan admin.",
   finalUnitPrice: null,
+  fairPrice: null,
 } satisfies Partial<Batch>;
 
 export const FIXTURE_BATCHES: Batch[] = [

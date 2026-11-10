@@ -171,9 +171,9 @@ export function buildDemoPlan(input: PlanInput): DemoPlan {
 
     if (spec.status === "open") {
       plan.openBatches.push({
-        id, name: spec.name, category: spec.category, unit: market.satuan, supplier: input.supplierName, verified: true, supplierCompletedBatches: 3,
+        id, name: spec.name, category: spec.category, unit: market.satuan, supplierId: input.supplierId, supplier: input.supplierName, verified: true, supplierCompletedBatches: 3,
         image: "", color: "#ead7c4", current: total, minimum: spec.minimum, closesAt, status: "open", acceptingOrders: true, tiers,
-        paymentInstructions: "", fulfillmentPlan: "", finalUnitPrice: null,
+        paymentInstructions: "", fulfillmentPlan: "", finalUnitPrice: null, fairPrice: null,
       });
     }
   }

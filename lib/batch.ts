@@ -1,3 +1,5 @@
+import type { FairPrice } from "@/lib/trust/fair-price";
+
 export type PriceTier = { minQuantity: number; unitPrice: number };
 
 export type BatchStatus = "open" | "successful" | "failed" | "cancelled";
@@ -7,6 +9,7 @@ export type Batch = {
   name: string;
   category: string;
   unit: string;
+  supplierId: string;
   supplier: string;
   verified: boolean;
   /** Jumlah batch supplier ini yang sudah selesai dengan sukses. */
@@ -23,6 +26,8 @@ export type Batch = {
   paymentInstructions: string;
   fulfillmentPlan: string;
   finalUnitPrice: number | null;
+  /** Perbandingan dengan harga pasar PIHPS; null bila bahan/satuan tidak cocok. */
+  fairPrice: FairPrice | null;
 };
 
 export const MAX_ORDER_QUANTITY = 100_000;
