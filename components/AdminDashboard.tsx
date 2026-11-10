@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import ImageUpload from "@/components/admin/ImageUpload";
 import { Brand } from "@/components/site/Brand";
 import { useRouter } from "next/navigation";
 import type { AdminBatch, AdminOrder, AdminSupplier } from "@/lib/admin";
@@ -56,17 +57,19 @@ function SupplierPanel({ suppliers }: { suppliers: AdminSupplier[] }) {
 }
 
 function CreateBatchForm({ suppliers }: { suppliers: AdminSupplier[] }) {
-  const empty = { supplierId: "", name: "", category: "Protein", unit: "kg", minimum: 100, closesAt: "", imageUrl: "", paymentInstructions: "", fulfillmentPlan: "" };
+  const empty = { supplierId: "", name: "", category: "Protein", unit: "kg", minimum: 100, closesAt: "", paymentInstructions: "", fulfillmentPlan: "" };
   const [form, setForm] = useState(empty);
   const [tiers, setTiers] = useState([{ minQuantity: 100, unitPrice: 35000 }]);
+  const [imagePath, setImagePath] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { busy, message, run } = useAction();
   const set = (key: keyof typeof empty) => (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm({ ...form, [key]: key === "minimum" ? Number(event.target.value) : event.target.value });
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const ok = await run(() => send("/api/admin/patungans", "POST", { ...form, closesAt: new Date(form.closesAt).toISOString(), tiers }), "Batch dibuat dan tampil di halaman utama.");
-    if (ok) { setForm({ ...empty, supplierId: form.supplierId }); setTiers([{ minQuantity: 100, unitPrice: 35000 }]); }
+    const ok = await run(() => send("/api/admin/patungans", "POST", { ...form, closesAt: new Date(form.closesAt).toISOString(), tiers, ...(imagePath ? { imagePath } : {}) }), "Batch dibuat dan tampil di halaman utama.");
+    if (ok) { setForm({ ...empty, supplierId: form.supplierId }); setTiers([{ minQuantity: 100, unitPrice: 35000 }]); setImagePath(null); }
   }
 
   return <section className="admin-panel admin-wide">
@@ -92,8 +95,8 @@ function CreateBatchForm({ suppliers }: { suppliers: AdminSupplier[] }) {
       </fieldset>
       <label className="admin-full">Aturan pembayaran<textarea required value={form.paymentInstructions} onChange={set("paymentInstructions")} placeholder="Contoh: tagihan dikirim via WhatsApp setelah batch berhasil; transfer ke rekening … paling lambat 2 hari." /></label>
       <label className="admin-full">Rencana penyerahan<textarea required value={form.fulfillmentPlan} onChange={set("fulfillmentPlan")} placeholder="Contoh: ambil di titik kumpul Pasar X, Sabtu 08.00–11.00." /></label>
-      <label className="admin-full">URL gambar (opsional)<input type="url" value={form.imageUrl} onChange={set("imageUrl")} placeholder="https://…" /></label>
-      <div className="admin-submit"><button className="button button-dark" disabled={busy}>{busy ? "Membuat…" : "Buka batch"}</button>{message && <p role="status">{message}</p>}</div>
+      <div className="admin-full admin-field">Foto bahan (opsional)<ImageUpload value={imagePath} onChange={setImagePath} onBusyChange={setUploading} /></div>
+      <div className="admin-submit"><button className="button button-dark" disabled={busy || uploading}>{busy ? "Membuat…" : "Buka batch"}</button>{message && <p role="status">{message}</p>}</div>
     </form>}
   </section>;
 }
