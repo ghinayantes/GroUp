@@ -80,6 +80,8 @@ Seed membuat 8 batch bahan pokok dengan harga yang mengikuti pasar Bandung. Patu
 
 Dasarnya margin perdagangan dan pengangkutan BPS: cabai ±25%, bawang ±23%, daging ayam ±12%, beras, minyak, gula, dan telur ±9–11%. Tier 1 memangkas sekitar sepertiga margin itu, tier 2 sekitar setengahnya.
 
+Foto tiap batch ada di `scripts/demo/images/` dan diunggah ke bucket `batch-images` saat seed.
+
 ## Isi repo
 
 | Folder | Isi |
