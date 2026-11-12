@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createRuntimeDeps } from "./runtime";
 
@@ -56,11 +58,13 @@ describe("createRuntimeDeps", () => {
     warn.mockRestore();
   });
 
-  it("classifier null bila artefak model belum ada", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect((await createRuntimeDeps({})).classifier).toBeNull();
-    warn.mockRestore();
-  });
+  it.skipIf(!existsSync(path.join(process.cwd(), "models", "intent-classifier", "thresholds.json")))(
+    "classifier tahap 1 dimuat dari models/intent-classifier",
+    async () => {
+      const classifier = (await createRuntimeDeps({})).classifier;
+      expect(classifier?.version).toMatch(/^\d{4}-\d{2}-\d{2}-[0-9a-f]{8}$/);
+    },
+  );
 
   it("harga pasar dibaca dari output pipeline PIHPS", async () => {
     const price = await (await createRuntimeDeps({})).marketPrice.lookup("Bawang Merah", null);

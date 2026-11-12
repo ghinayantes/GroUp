@@ -64,7 +64,10 @@ describe("loadIntentClassifier", () => {
 
   it("instance dipakai ulang untuk direktori yang sama", async () => {
     const dir = copyFixture("singleton");
-    expect(loadIntentClassifier(dir)).toBe(loadIntentClassifier(dir));
+    const first = loadIntentClassifier(dir);
+    expect(loadIntentClassifier(dir)).toBe(first);
+    // Tunggu sampai selesai: pemuatan yang masih berjalan mengubah env global transformers.js untuk tes berikutnya.
+    await first;
   });
 
   const realModel = path.join(process.cwd(), "models/intent-classifier");

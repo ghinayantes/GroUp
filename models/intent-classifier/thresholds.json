@@ -1,0 +1,95 @@
+{
+  "modelVersion": "2026-11-12-8d94f785",
+  "baseModel": "indobenchmark/indobert-lite-base-p1",
+  "thresholds": {
+    "pesan_baru": 0.9987531304359436,
+    "ubah_pesanan": 0.9994067549705505,
+    "batal_pesanan": 0.9963319897651672,
+    "cek_pesanan": 0.9993789196014404,
+    "tanya_info": 0.9910507202148438,
+    "tanya_harga_pasar": 0.9993488192558289,
+    "catat_minat": 0.9966961145401001,
+    "sapaan": 0.9994334578514099,
+    "di_luar_topik": 0.9995571970939636
+  },
+  "calibration": {
+    "valRows": 301,
+    "targetPrecision": 0.97,
+    "minSupport": 5,
+    "confidenceLevel": 0.95,
+    "perIntent": {
+      "pesan_baru": {
+        "threshold": 0.9987531304359436,
+        "valPredictions": 32,
+        "support": 32,
+        "precision": 1,
+        "wilsonLow": 0.8928208002353198,
+        "wilsonHigh": 1
+      },
+      "ubah_pesanan": {
+        "threshold": 0.9994067549705505,
+        "valPredictions": 37,
+        "support": 37,
+        "precision": 1,
+        "wilsonLow": 0.9059421728185313,
+        "wilsonHigh": 1
+      },
+      "batal_pesanan": {
+        "threshold": 0.9963319897651672,
+        "valPredictions": 34,
+        "support": 34,
+        "precision": 1,
+        "wilsonLow": 0.8984854444077807,
+        "wilsonHigh": 0.9999999999999999
+      },
+      "cek_pesanan": {
+        "threshold": 0.9993789196014404,
+        "valPredictions": 35,
+        "support": 35,
+        "precision": 1,
+        "wilsonLow": 0.901099006269668,
+        "wilsonHigh": 1
+      },
+      "tanya_info": {
+        "threshold": 0.9910507202148438,
+        "valPredictions": 35,
+        "support": 35,
+        "precision": 1,
+        "wilsonLow": 0.901099006269668,
+        "wilsonHigh": 1
+      },
+      "tanya_harga_pasar": {
+        "threshold": 0.9993488192558289,
+        "valPredictions": 34,
+        "support": 34,
+        "precision": 1,
+        "wilsonLow": 0.8984854444077807,
+        "wilsonHigh": 0.9999999999999999
+      },
+      "catat_minat": {
+        "threshold": 0.9966961145401001,
+        "valPredictions": 29,
+        "support": 29,
+        "precision": 1,
+        "wilsonLow": 0.8830301998708162,
+        "wilsonHigh": 0.9999999999999999
+      },
+      "sapaan": {
+        "threshold": 0.9994334578514099,
+        "valPredictions": 34,
+        "support": 34,
+        "precision": 1,
+        "wilsonLow": 0.8984854444077807,
+        "wilsonHigh": 0.9999999999999999
+      },
+      "di_luar_topik": {
+        "threshold": 0.9995571970939636,
+        "valPredictions": 31,
+        "support": 30,
+        "precision": 1,
+        "wilsonLow": 0.886486605238548,
+        "wilsonHigh": 1
+      }
+    }
+  }
+}
