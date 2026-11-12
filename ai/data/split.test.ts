@@ -2,14 +2,42 @@ import { describe, expect, it } from "vitest";
 import { INTENTS } from "@/lib/agent/types";
 import { mulberry32 } from "./augment";
 import type { IntentRow } from "./rows";
-import { dedupeAgainst, stratifiedSplit } from "./split";
+import { dedupeAgainst, mergeExact, stratifiedSplit } from "./split";
 
 const row = (text: string, intent: IntentRow["intent"] = "pesan_baru"): IntentRow => ({ text, intent, source: "synthetic" });
+
+describe("mergeExact", () => {
+  it("menyimpan satu baris per teks dan memilih versi tim bila sama dengan sintetis", () => {
+    const team: IntentRow = { text: "Batal yg cabe ya", intent: "batal_pesanan", source: "team" };
+    const { rows, duplicates, relabeled } = mergeExact([
+      row("batal  yg cabe ya", "ubah_pesanan"),
+      team,
+      row("kapan bayarnya kak", "tanya_info"),
+      row("KAPAN BAYARNYA KAK", "tanya_info"),
+    ]);
+    expect(rows).toEqual([team, row("kapan bayarnya kak", "tanya_info")]);
+    expect(duplicates).toBe(2);
+    expect(relabeled).toBe(1);
+  });
+
+  it("tidak mengganti baris tim dengan baris sintetis yang datang belakangan", () => {
+    const team: IntentRow = { text: "halo kak", intent: "sapaan", source: "team" };
+    expect(mergeExact([team, row("halo kak", "sapaan")]).rows).toEqual([team]);
+  });
+});
 
 describe("dedupeAgainst", () => {
   it('membuang "mau ikut cabe 5kg" bila test berisi "mau ikut cabe 5 kg"', () => {
     const kept = dedupeAgainst([row("mau ikut cabe 5kg"), row("kapan bayarnya kak", "tanya_info")], [row("mau ikut cabe 5 kg")]);
     expect(kept.map((r) => r.text)).toEqual(["kapan bayarnya kak"]);
+  });
+
+  it("membuang baris latih yang membungkus teks uji berisi minimal 3 kata", () => {
+    const kept = dedupeAgainst(
+      [row("permisi min, dftr ayam 2kg ya"), row("dftr ayam 20kg buat warung"), row("pagi min saya mau ikut gula 10 kg")],
+      [row("dftr ayam 2kg"), row("pagi min", "sapaan")],
+    );
+    expect(kept.map((r) => r.text)).toEqual(["dftr ayam 20kg buat warung", "pagi min saya mau ikut gula 10 kg"]);
   });
 });
 

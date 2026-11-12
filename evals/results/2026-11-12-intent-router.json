@@ -1,0 +1,165 @@
+{
+  "suite": "intent",
+  "mode": "router",
+  "date": "2026-11-12",
+  "commit": "9e4c59a",
+  "stage2Model": "google/gemini-3.5-flash-lite",
+  "outputMode": "json-text",
+  "classifierVersion": "2026-11-12-8d94f785",
+  "status": "ok",
+  "dataset": {
+    "path": "ai/data/test.jsonl",
+    "rows": 225,
+    "missing": false
+  },
+  "metrics": {
+    "rows": 225,
+    "accuracy": 0.8977777777777778,
+    "macroF1": 0.8981950752244237,
+    "acceptedPrecision": 0.9759036144578314,
+    "stage1AcceptRate": 0.7377777777777778,
+    "perIntent": {
+      "pesan_baru": {
+        "accepted": 20,
+        "precision": 1
+      },
+      "ubah_pesanan": {
+        "accepted": 24,
+        "precision": 1
+      },
+      "batal_pesanan": {
+        "accepted": 15,
+        "precision": 1
+      },
+      "cek_pesanan": {
+        "accepted": 19,
+        "precision": 1
+      },
+      "tanya_info": {
+        "accepted": 15,
+        "precision": 0.8666666666666667
+      },
+      "tanya_harga_pasar": {
+        "accepted": 17,
+        "precision": 1
+      },
+      "catat_minat": {
+        "accepted": 21,
+        "precision": 0.9047619047619048
+      },
+      "sapaan": {
+        "accepted": 24,
+        "precision": 1
+      },
+      "di_luar_topik": {
+        "accepted": 11,
+        "precision": 1
+      }
+    },
+    "confusion": {
+      "pesan_baru": {
+        "pesan_baru": 21,
+        "ubah_pesanan": 1,
+        "batal_pesanan": 0,
+        "cek_pesanan": 1,
+        "tanya_info": 0,
+        "tanya_harga_pasar": 0,
+        "catat_minat": 2,
+        "sapaan": 0,
+        "di_luar_topik": 0
+      },
+      "ubah_pesanan": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 25,
+        "batal_pesanan": 0,
+        "cek_pesanan": 0,
+        "tanya_info": 0,
+        "tanya_harga_pasar": 0,
+        "catat_minat": 0,
+        "sapaan": 0,
+        "di_luar_topik": 0
+      },
+      "batal_pesanan": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 0,
+        "batal_pesanan": 23,
+        "cek_pesanan": 0,
+        "tanya_info": 0,
+        "tanya_harga_pasar": 0,
+        "catat_minat": 0,
+        "sapaan": 0,
+        "di_luar_topik": 2
+      },
+      "cek_pesanan": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 0,
+        "batal_pesanan": 0,
+        "cek_pesanan": 22,
+        "tanya_info": 1,
+        "tanya_harga_pasar": 0,
+        "catat_minat": 1,
+        "sapaan": 0,
+        "di_luar_topik": 1
+      },
+      "tanya_info": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 0,
+        "batal_pesanan": 0,
+        "cek_pesanan": 1,
+        "tanya_info": 18,
+        "tanya_harga_pasar": 1,
+        "catat_minat": 1,
+        "sapaan": 0,
+        "di_luar_topik": 4
+      },
+      "tanya_harga_pasar": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 0,
+        "batal_pesanan": 0,
+        "cek_pesanan": 0,
+        "tanya_info": 3,
+        "tanya_harga_pasar": 21,
+        "catat_minat": 0,
+        "sapaan": 0,
+        "di_luar_topik": 1
+      },
+      "catat_minat": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 0,
+        "batal_pesanan": 0,
+        "cek_pesanan": 0,
+        "tanya_info": 0,
+        "tanya_harga_pasar": 0,
+        "catat_minat": 24,
+        "sapaan": 0,
+        "di_luar_topik": 1
+      },
+      "sapaan": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 0,
+        "batal_pesanan": 0,
+        "cek_pesanan": 0,
+        "tanya_info": 0,
+        "tanya_harga_pasar": 0,
+        "catat_minat": 0,
+        "sapaan": 25,
+        "di_luar_topik": 0
+      },
+      "di_luar_topik": {
+        "pesan_baru": 0,
+        "ubah_pesanan": 0,
+        "batal_pesanan": 0,
+        "cek_pesanan": 0,
+        "tanya_info": 0,
+        "tanya_harga_pasar": 1,
+        "catat_minat": 0,
+        "sapaan": 1,
+        "di_luar_topik": 23
+      }
+    },
+    "latencyMs": {
+      "p50": 4.809999999999945,
+      "p95": 23.667199999999866
+    }
+  }
+}

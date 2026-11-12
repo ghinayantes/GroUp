@@ -1,16 +1,24 @@
 import type { NextConfig } from "next";
 
-// Classifier tahap 1 baru dimuat bila models/intent-classifier/onnx/model_quantized.onnx ada. Selama model belum
-// dicommit, runtime ONNX dan Transformers tidak pernah dipakai tapi ikut ter-trace (±250 MB per fungsi).
-// Saat model ditambahkan, hapus exclude ini dan sertakan model, onnxruntime-node (binary platform build),
-// serta onnxruntime-common/dist/cjs lewat outputFileTracingIncludes.
-const unusedClassifierRuntime = [
-  "./node_modules/onnxruntime-node/**",
-  "./node_modules/onnxruntime-common/**",
+// File tracing does not follow onnxruntime-node's native binary or its CommonJS dependency; without these the
+// deployed function fails with "Cannot find module onnxruntime-common/dist/cjs". Only the build platform's binary is copied.
+const ORT_BIN = "./node_modules/onnxruntime-node/bin/napi-v6";
+const ORT_PLATFORMS = ["darwin/arm64", "darwin/x64", "linux/arm64", "linux/x64", "win32/arm64", "win32/x64"];
+const buildPlatform = `${process.platform}/${process.arch}`;
+
+const intentClassifierFiles = [
+  "./models/intent-classifier/**",
+  "./node_modules/onnxruntime-node/package.json",
+  "./node_modules/onnxruntime-node/dist/**",
+  `${ORT_BIN}/${buildPlatform}/**`,
+  "./node_modules/onnxruntime-common/dist/cjs/**",
+];
+
+// onnxruntime-node ships every platform's binary (±290 MB) and transformers.js bundles its own onnxruntime-web,
+// so tracing them all pushes each agent function to ±250 MB. sharp stays: transformers.js imports it at load time.
+const unusedClassifierFiles = [
+  ...ORT_PLATFORMS.filter((platform) => platform !== buildPlatform).map((platform) => `${ORT_BIN}/${platform}/**`),
   "./node_modules/onnxruntime-web/**",
-  "./node_modules/@huggingface/transformers/**",
-  "./node_modules/sharp/**",
-  "./node_modules/@img/**",
   "./lib/agent/stage1/__fixtures__/**",
 ];
 
@@ -24,10 +32,12 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     // Strip metrik di halaman depan membaca hasil eval dan data uji saat request.
     "/": ["./evals/results/**", "./ai/data/test.jsonl"],
+    "/api/whatsapp/webhook": intentClassifierFiles,
+    "/api/simulator/message": intentClassifierFiles,
   },
   outputFileTracingExcludes: {
-    "/api/whatsapp/webhook": unusedClassifierRuntime,
-    "/api/simulator/message": unusedClassifierRuntime,
+    "/api/whatsapp/webhook": unusedClassifierFiles,
+    "/api/simulator/message": unusedClassifierFiles,
   },
 };
 

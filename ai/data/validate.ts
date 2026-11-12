@@ -7,7 +7,7 @@ export const TEST_SET_RULES: ValidationRules = { allowedSources: ["team", "umkm"
 
 export const TRAIN_SOURCE_RULES: ValidationRules = { allowedSources: [...SOURCES], minTotal: 0, minPerIntent: 0, maxLength: 1000 };
 
-const normalize = (text: string) => text.toLowerCase().replace(/\s+/g, " ").trim();
+export const normalize = (text: string) => text.toLowerCase().replace(/\s+/g, " ").trim();
 
 export function validateRows(rows: unknown[], rules: ValidationRules): { errors: string[]; counts: Record<Intent, number> } {
   const errors: string[] = [];
