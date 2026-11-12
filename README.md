@@ -3,10 +3,13 @@
 </p>
 
 <p align="center">
-  <a href="#mulai-cepat"><b>Mulai cepat</b></a> ·
+  <a href="#tim"><b>Tim</b></a> ·
   <a href="#fitur"><b>Fitur</b></a> ·
-  <a href="#coba-sebagai-juri"><b>Mode demo</b></a> ·
-  <a href="#panduan-teknis"><b>Panduan teknis</b></a>
+  <a href="#arsitektur-sistem-dan-alur-data"><b>Arsitektur</b></a> ·
+  <a href="#instalasi-dan-menjalankan-aplikasi"><b>Instalasi</b></a> ·
+  <a href="#akun-demonstrasi"><b>Akun demo</b></a> ·
+  <a href="#penggunaan-ai"><b>AI</b></a> ·
+  <a href="#atribusi"><b>Atribusi</b></a>
 </p>
 
 <p align="center">
@@ -16,21 +19,62 @@
   <img src="https://img.shields.io/badge/AI%20SDK-7-e9692c?style=flat-square" alt="AI SDK 7">
 </p>
 
-## Apa itu GroUp?
+## Tim
 
-Warung dan usaha kecil biasanya beli bahan baku sedikit-sedikit, jadi harganya mahal. **GroUp** mengumpulkan pesanan banyak usaha ke dalam satu **batch** supaya bisa dapat harga grosir dari supplier. Pesanan bisa lewat **website**, **WhatsApp**, atau **simulator WhatsApp**, dan semuanya masuk ke batch yang sama.
+**Nama tim:** KitaMasihPemula
+
+| No | Nama | Peran |
+|---|---|---|
+| 1 | Ghina Emelia Yantes | Full Stack|
+| 2 | Muhammad Rafiif Ansyadya | AI/LLM |
+| 3 | Pelangi Putri Sanyoto | Finance |
+| 4 | Visakha Harumi Hendrawan | Product Manager |
+
+## Tentang aplikasi
+
+| | |
+|---|---|
+| **Kategori** | Web |
+| **Nama aplikasi** | GroUp |
+| **Demo** | <https://gro-up-virid.vercel.app> |
+
+### Masalah yang diangkat
+
+**Subtema yang diangkat:** Local MSME & Creative Economy
+
+Pelaku UMKM kuliner kerap menghadapi kendala dalam pengadaan bahan baku karena pembelian skala kecil memaksa mereka membayar harga eceran. Di sisi lain, harga grosir hanya berlaku untuk pembelian dalam jumlah besar yang melampaui kapasitas modal dan penyimpanan mereka. Permasalahan ini diperparah oleh minimnya informasi untuk menilai kewajaran harga pasar serta mengidentifikasi pemasok yang kredibel.
+
+### Solusi
+
+**GroUp** mengumpulkan pesanan dari berbagai usaha ke dalam satu **batch** (patungan) agar dapat memperoleh **harga grosir bertingkat** dari *supplier*. Semakin banyak pihak yang bergabung, semakin murah pula harga yang didapatkan. Pembeli hanya perlu melakukan pembayaran apabila **kuota minimum batch** telah terpenuhi. Pemesanan dapat dilakukan secara fleksibel melalui **website**, **WhatsApp**, maupun **simulator WhatsApp**, dengan seluruh data pesanan yang terintegrasi ke dalam **batch** yang sama. Selain itu, teknologi **AI** hadir untuk membantu membandingkan harga dengan **harga pasar resmi (MVP: data PIHPS Kota Bandung)**, merangkum **rekam jejak supplier**, serta menerjemahkan dan memahami **pesan WhatsApp** yang ditulis secara bebas oleh pengguna.
+
+### Target pengguna
+
+- **Pembeli:** pelaku UMKM kuliner (warung makan, katering, pedagang gorengan, kedai) di Kota Bandung.
+- **Grosir/supplier:** pedagang besar bahan pokok yang ingin menjual dalam volume pasti.
+- **Admin:** pengelola platform yang memverifikasi supplier dan mencatat pembayaran serta penyerahan.
 
 <p align="center"><img src=".github/assets/flow.png" alt="Empat langkah: pilih batch, ikut pesan, harga turun, bayar kalau berhasil" width="100%"></p>
 
 ## Fitur
 
+Semua fitur di bawah sudah diimplementasikan dan bisa dicoba di demo.
+
 | | |
 |---|---|
 | **Katalog patungan** | Cari batch, filter kategori, lihat progres kuota dan tier harga. |
-| **Pesan via WhatsApp** | Kirim `MULAI`, pilih batch, isi jumlah, konfirmasi. |
+| **Harga bertingkat** | Harga turun otomatis per tier saat total pesanan naik; harga final dibekukan saat batch ditutup. |
+| **Pesan lewat website** | Form pesanan di detail batch; ubah atau batalkan pesanan di `/pesanan` dengan kode pengelolaan. |
+| **Pesan via WhatsApp** | Kirim `MULAI`, pilih batch, isi jumlah, konfirmasi. Juga ada `PESANAN` untuk mengecek pesanan pribadi, `UBAH` untuk meminta perubahan pesanan, dan `BATAL` untuk membatalkan proses. |
 | **Simulator WhatsApp** | Coba alur WhatsApp dari website, lengkap dengan panel "Di balik layar". |
 | **Agen AI** | Memahami pesan bebas. Aksi yang mengubah data tetap butuh tombol konfirmasi. |
-| **Tiga peran** | Dashboard terpisah untuk admin, grosir, dan pembeli. |
+| **Cek harga wajar** | Harga batch dibanding harga pasar PIHPS Kota Bandung, plus prediksi bulan depan. |
+| **Kartu kepercayaan supplier** | Fakta rekam jejak supplier dari database dengan ringkasan singkat dari AI. |
+| **Radar permintaan** | Grosir melihat bahan yang sedang banyak dicari pembeli. |
+| **Asisten buka batch** | Saran harga tier dan kuota minimum, plus upload foto batch. |
+| **Tiga peran** | Dashboard terpisah untuk admin, grosir, dan pembeli, dengan login berbasis peran. |
+| **Aktivitas AI** | Admin memantau jalur, intent, tool, latensi, dan token setiap pesan yang diproses agen. |
+| **Transparansi AI** | Halaman `/transparansi-ai` dan label "Dibantu AI" di setiap fitur yang memakai AI. |
 
 <p align="center"><img src=".github/assets/ai.png" alt="AI kepercayaan: cek harga wajar, kartu supplier, radar permintaan, asisten buka batch" width="100%"></p>
 
@@ -46,26 +90,159 @@ Warung dan usaha kecil biasanya beli bahan baku sedikit-sedikit, jadi harganya m
 
 Batch ditutup setelah deadline. Kalau di bawah minimum, statusnya *tidak tercapai* dan tidak ada tagihan. Kalau minimum tercapai, harga final dibekukan dan pesanan menjadi *menunggu bayar*.
 
-## Mulai cepat
+## Teknologi
+
+| Lapisan | Yang dipakai |
+|---|---|
+| **Framework** | [Next.js 16](https://nextjs.org) (App Router, Server Actions, `proxy.ts`), [React 19](https://react.dev), TypeScript 5.9 |
+| **Library** | [AI SDK 7](https://ai-sdk.dev) (`ai`, `@ai-sdk/google`, `@ai-sdk/openai-compatible`), [Zod 4](https://zod.dev), [`@supabase/ssr`](https://supabase.com/docs/guides/auth/server-side) dan `@supabase/supabase-js`, [`@huggingface/transformers`](https://huggingface.co/docs/transformers.js) (classifier ONNX) |
+| **Database & storage** | [Supabase](https://supabase.com): PostgreSQL, Auth (email/kata sandi, peran di `app_metadata`), Storage (`batch-images`, `site-media`), Row Level Security |
+| **API & layanan pihak ketiga** | [WhatsApp Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api) (Meta), [Google Gemini API](https://ai.google.dev) (model tahap 2 di production), [Vercel AI Gateway](https://vercel.com/ai-gateway) (alternatif), data harga [PIHPS Nasional](https://www.bi.go.id/hargapangan) (Bank Indonesia) dan SP2KP (Kemendag) |
+| **Hosting** | [Vercel](https://vercel.com): Fluid Compute, Vercel Schedules (cron pembersihan), Vercel WAF (rate limit simulator); konfigurasi di `vercel.ts` (`@vercel/config`) |
+| **AI/ML (Python)** | pandas, scikit-learn, LightGBM, joblib (pipeline harga di `ai/harga/`); Transformers + Optimum + ONNX Runtime (pelatihan classifier di Colab) |
+| **Pengujian** | Vitest, pytest, pgTAP (`supabase test db`), Playwright (rekam demo), ESLint |
+
+## Arsitektur sistem dan alur data
+
+```mermaid
+flowchart LR
+  subgraph Klien
+    WEB[Browser<br/>website & dashboard]
+    SIM[Simulator WhatsApp<br/>/simulator]
+    WA[WhatsApp pengguna]
+  end
+
+  subgraph Vercel["Next.js 16 di Vercel"]
+    PROXY[proxy.ts<br/>cek sesi & peran]
+    PAGES[Halaman & Server Actions<br/>app/]
+    API[Route API<br/>/api/orders, /api/admin, /api/grosir]
+    SIMAPI["/api/simulator/message"]
+    HOOK["/api/whatsapp/webhook"]
+    ENGINE[Engine agen<br/>lib/agent]
+    TRUST[AI kepercayaan<br/>lib/trust]
+    CRON["/api/cron/cleanup"]
+  end
+
+  subgraph Agen["Router agen tiga lapis"]
+    FIXED[Lapis 1: perintah baku<br/>MULAI, PESANAN, UBAH, BATAL]
+    S1[Lapis 2: classifier intent<br/>ONNX lokal]
+    S2[Lapis 3: LLM + tools baca-saja]
+  end
+
+  DB[(Supabase Postgres<br/>batch, tier, pesanan,<br/>sesi, trace)]
+  AUTH[Supabase Auth]
+  STO[Supabase Storage]
+  LLM[Gemini API /<br/>AI Gateway]
+  META[Meta WhatsApp<br/>Cloud API]
+  PIHPS[ai/harga/output/<br/>prediksi.json]
+
+  WEB --> PROXY --> PAGES
+  PAGES --> API
+  PAGES --> TRUST
+  SIM --> SIMAPI --> ENGINE
+  WA --> META --> HOOK --> ENGINE
+  ENGINE --> FIXED --> S1 --> S2
+  S2 --> LLM
+  ENGINE --> DB
+  ENGINE -- balasan --> META
+  API --> DB
+  PAGES --> AUTH
+  API --> STO
+  TRUST --> DB
+  TRUST --> PIHPS
+  TRUST --> LLM
+  S2 --> PIHPS
+  CRON --> DB
+```
+
+**Alur data pesanan**
+
+1. Grosir membuka batch (bahan, foto, tier harga, kuota minimum, deadline). Data tersimpan di tabel batch dan tier; foto di bucket `batch-images`.
+2. Pembeli memesan dari website, WhatsApp, atau simulator. Ketiga kanal menulis ke tabel pesanan yang sama melalui fungsi database, sehingga kuota dan tier harga dihitung sekali di satu tempat.
+3. Pesan WhatsApp dan simulator diproses engine agen: perintah baku dulu, lalu classifier intent, lalu LLM. LLM hanya bisa memanggil tools baca-saja; aksi yang mengubah data harus dikonfirmasi pengguna dengan tombol. Setiap langkah dicatat di `agent_traces`.
+4. Setelah deadline, batch ditutup. Bila kuota minimum tercapai, harga final dibekukan dan pesanan menjadi *menunggu bayar*; bila tidak, batch *tidak tercapai* tanpa tagihan.
+5. Admin mencatat pembayaran dan penyerahan. Cron harian menghapus data agen lama dan mengembalikan data demo ke awal.
+6. Harga pasar dibaca dari `prediksi.json` yang dihasilkan pipeline Python `ai/harga/` dari data PIHPS dan SP2KP.
+
+## Instalasi dan menjalankan aplikasi
+
+**Prasyarat:** Node.js 24 LTS, npm, akun [Supabase](https://supabase.com). Opsional: Supabase CLI + Docker (tes database), Python 3.13 (pipeline harga), `ffmpeg` (rekam video demo).
 
 ```bash
+git clone https://github.com/ghinayantes/GroUp.git
+cd GroUp
 npm install
+cp .env.example .env.local     # lalu isi nilainya (lihat tabel di bawah)
 npm run dev
 ```
 
-Buka <http://localhost:3000>. Tanpa kredensial pun website sudah menampilkan batch contoh. Untuk menyimpan pesanan, siapkan Supabase (lihat [panduan teknis](#panduan-teknis)).
+Buka <http://localhost:3000>. Tanpa kredensial pun website sudah menampilkan batch contoh. Untuk menyimpan pesanan:
 
-## Coba sebagai juri
+1. Buat proyek Supabase, isi tiga variabel Supabase di `.env.local`.
+2. Terapkan migrasi: `supabase link --project-ref <ref>` lalu `supabase db push` (atau jalankan file `supabase/migrations/` berurutan di SQL Editor).
+3. Aktifkan Email/Password di Supabase Auth.
+4. Isi akun `DEMO_*`, lalu jalankan `npm run demo:seed` untuk membuat akun demo, supplier, batch, pesanan, dan foto.
 
-Isi akun demo `DEMO_*` di `.env.local`, lalu:
+Build production: `npm run build && npm start`. Deploy: hubungkan repo ke Vercel dan isi variabel yang sama di Project Settings → Environment Variables.
 
-```bash
-npm run demo:seed
-```
+### Konfigurasi tambahan per fitur
 
-Di `/masuk`, pilih **Coba sebagai Pembeli / Grosir / Admin** untuk langsung masuk tanpa mengetik kata sandi. Data demo kembali ke keadaan awal setiap malam.
+| Fitur | Yang perlu disiapkan |
+|---|---|
+| Login & dashboard | Supabase Auth; admin pertama dibuat lewat SQL (lihat [Supabase dan akun](#panduan-teknis)) |
+| WhatsApp asli | Aplikasi Meta + nomor WhatsApp Business, isi `WHATSAPP_*`, daftarkan webhook `https://<domain>/api/whatsapp/webhook` |
+| Pemahaman teks bebas (tahap 2) | Kunci Gemini (`GOOGLE_GENERATIVE_AI_API_KEY`) atau AI Gateway / endpoint kompatibel OpenAI |
+| Classifier tahap 1 | Latih di Colab (`ai/training/intent_classifier.ipynb`), taruh artefak di `models/intent-classifier/` |
+| Harga pasar | Python 3.13, jalankan `python train.py` di `ai/harga/` |
+| Cron pembersihan | `CRON_SECRET` di Vercel; schedule terdaftar di `vercel.ts` |
+| Rate limit simulator | Aturan Vercel WAF (perintah di [Simulator WhatsApp](#panduan-teknis)) |
+| Video & klip demo | `ffmpeg` dan `npx playwright install chromium` |
 
-Seed membuat 8 batch bahan pokok dengan harga yang mengikuti pasar Bandung. Patungan hanya memangkas sebagian margin distribusi, jadi hematnya 3–12%, bukan separuh harga:
+### Variabel lingkungan (`.env.example`)
+
+| Variabel | Wajib | Keterangan |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Ya | URL proyek Supabase |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Ya | Publishable key Supabase (aman di browser) |
+| `SUPABASE_SECRET_KEY` | Ya | Secret key Supabase, hanya di server |
+| `NEXT_PUBLIC_SITE_URL` | Tidak | URL publik situs untuk tautan di balasan agen |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Tidak | Nomor WhatsApp (kode negara + angka) untuk tautan di website |
+| `CRON_SECRET` | Production | String acak ≥ 16 karakter untuk `/api/cron/cleanup` |
+| `WHATSAPP_API_VERSION` | WhatsApp | Versi Graph API, format `vNN.N` |
+| `WHATSAPP_PHONE_NUMBER_ID` | WhatsApp | ID nomor pengirim |
+| `WHATSAPP_ACCESS_TOKEN` | WhatsApp | Token akses Cloud API |
+| `WHATSAPP_APP_SECRET` | WhatsApp | Untuk verifikasi signature webhook |
+| `WHATSAPP_VERIFY_TOKEN` | WhatsApp | Token verifikasi saat mendaftarkan webhook |
+| `AGENT_ENABLED` | Tidak | `false` mematikan pemahaman teks bebas |
+| `AGENT_STAGE2_PROVIDER` | Tidak | `google` (production), `gateway`, atau `openai-compatible` |
+| `AGENT_STAGE2_MODEL` | Tidak | ID model; kosong memakai default penyedia |
+| `AGENT_STAGE2_OUTPUT_MODE` | Tidak | `json-text` (default) atau `native` |
+| `AGENT_STAGE2_THINKING_LEVEL` | Tidak | Khusus `google`: `minimal`, `low`, `medium`, `high` |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Tahap 2 | Kunci Gemini API |
+| `AI_GATEWAY_API_KEY` | Tahap 2 | Kunci Vercel AI Gateway (lokal) |
+| `AGENT_STAGE2_BASE_URL`, `AGENT_STAGE2_API_KEY` | Tahap 2 | Endpoint kompatibel OpenAI |
+| `DEMO_PEMBELI_EMAIL`, `DEMO_PEMBELI_PASSWORD` | Demo | Akun demo pembeli |
+| `DEMO_GROSIR_EMAIL`, `DEMO_GROSIR_PASSWORD` | Demo | Akun demo grosir |
+| `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD` | Demo | Akun demo admin |
+| `DEMO_BASE_URL` | Tidak | URL yang direkam `npm run demo:record` |
+| `NEXT_PUBLIC_DEMO_VIDEO_URL`, `NEXT_PUBLIC_DEMO_POSTER_URL` | Tidak | Video dan poster hero beranda |
+
+## Akun demonstrasi
+
+Aplikasi memakai autentikasi dengan tiga peran. Juri tidak perlu mengetik email atau kata sandi:
+
+1. Buka <https://gro-up-virid.vercel.app/masuk>.
+2. Pilih **Coba sebagai Pembeli**, **Coba sebagai Grosir**, atau **Coba sebagai Admin**.
+
+| Tombol | Masuk ke | Yang bisa dicoba |
+|---|---|---|
+| Coba sebagai Pembeli | `/akun` | Pesanan dengan timeline, ubah/batalkan pesanan, total hemat |
+| Coba sebagai Grosir | `/grosir` | Buka batch dengan asisten harga, radar permintaan, kartu kepercayaan |
+| Coba sebagai Admin | `/admin` | KPI, kelola batch/pesanan, verifikasi supplier, Aktivitas AI |
+
+Login dilakukan lewat server action, jadi kata sandi akun demo tidak pernah dikirim ke browser. Data demo kembali ke keadaan awal setiap malam (02.00 WIB). Simulator WhatsApp di `/simulator` bisa dipakai tanpa login.
+
+Untuk menjalankan demo di lokal, isi `DEMO_*` di `.env.local` lalu jalankan `npm run demo:seed`. Seed membuat 8 batch bahan pokok dengan harga yang mengikuti pasar Bandung. Patungan hanya memangkas sebagian margin distribusi, jadi hematnya 3–12%, bukan separuh harga:
 
 | Batch | Status | Tier 1 / tier 2 (% harga PIHPS) |
 |---|---|---|
@@ -318,6 +495,60 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
 | `AGENT_ENABLED` | `false` mematikan pemahaman teks bebas; teks bebas hanya dibalas menu (sakelar darurat) |
 
 </details>
+
+## Penggunaan AI
+
+### AI di dalam aplikasi
+
+| Komponen | Model / metode | Dipakai untuk | Batasan dan pengaman |
+|---|---|---|---|
+| Classifier intent (tahap 1) | Fine-tune `indobenchmark/indobert-lite-base-p1` atau `intfloat/multilingual-e5-small`, diekspor ke ONNX int8 | Mengenali 9 intent pesan WhatsApp tanpa memanggil LLM | Hanya dipakai kalau model cukup yakin (tebakan benar ≥ 97%). **Model belum dilatih, jadi saat ini semua pesan bebas langsung ditangani Gemini.** Lihat [model card](models/intent-classifier/MODEL_CARD.md) |
+| Agen tahap 2 | Gemini `gemini-3.5-flash-lite` lewat AI SDK (bisa diganti ke AI Gateway / endpoint kompatibel OpenAI) | Menjawab pertanyaan bebas dengan tools baca-saja `cari_batch`, `detail_batch`, `pesanan_saya`, `harga_pasar` | Data pribadi diredaksi sebelum dikirim; angka di jawaban harus ada di hasil tool; 20 panggilan/jam per pengirim; aksi yang mengubah data wajib dikonfirmasi tombol; balasan diberi awalan 🤖 |
+| Ringkasan kepercayaan supplier | Model tahap 2 yang sama | Ringkasan 1–2 kalimat dari fakta supplier di database | Ringkasan yang memuat angka atau bulan di luar fakta, error, atau lebih dari 5 detik diganti template; cache 24 jam |
+| Harga pasar & prediksi | Naive baseline, model statistik, dan LightGBM dengan validasi walk-forward (`ai/harga/`) | Membandingkan harga batch dengan harga pasar dan status volatilitas | Model non-naive hanya dipilih bila menang ≥ 10% atas naive; MAPE validasi ditampilkan di UI |
+
+Semua fitur berbantuan AI diberi label "Dibantu AI" yang menautkan ke `/transparansi-ai`. Admin bisa memeriksa setiap keputusan agen di halaman Aktivitas AI.
+
+**Data dan evaluasi.** Data latih classifier sebagian besar sintetis: `ai/data/raw/train_wa.jsonl` dan `ai/data/raw/synthetic.jsonl` (dihasilkan `npm run data:generate` dengan model tahap 2). Data uji (`ai/data/test.jsonl`) ditulis manusia; saat ini baru 5 baris dari target ≥ 300. Format laporan eval ada di [`evals/REPORT.md`](evals/REPORT.md); angkanya baru terisi setelah classifier dilatih dan dataset uji lengkap.
+
+### AI dalam proses pengembangan
+
+Tim memakai asisten koding AI (Claude Code, Anthropic) untuk membantu menulis dan merefaktor kode, menulis tes, membuat dokumentasi, dan merender gambar README. Pedoman kerja untuk asisten AI ada di [`AGENTS.md`](AGENTS.md). Semua keluaran AI ditinjau tim, diuji dengan Vitest, pytest, dan pgTAP, lalu diverifikasi manual sebelum di-commit.
+
+## Atribusi
+
+### Foto batch demo (`scripts/demo/images/`)
+
+| File | Sumber | Pembuat | Lisensi |
+|---|---|---|---|
+| `telur_ayam_ras.jpg` | [A Tray Of Eggs.jpg](https://commons.wikimedia.org/wiki/File:A_Tray_Of_Eggs.jpg), Wikimedia Commons | safaritravelplus | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `beras_medium.jpg` | [Thai jasmine rice uncooked.jpg](https://commons.wikimedia.org/wiki/File:Thai_jasmine_rice_uncooked.jpg), Wikimedia Commons | Takeaway | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/) |
+| `cabai_merah_keriting.jpg`, `bawang_merah.jpg`, `bawang_putih.jpg`, `daging_ayam_ras.jpg`, `gula_pasir.jpg`, `minyak_goreng_curah.jpg` | Foto dari Googgle |  | |
+
+Gambar README di `.github/assets/` dan screenshot aplikasi dibuat sendiri oleh tim.
+
+### Data
+
+| Data | Sumber | Dipakai di |
+|---|---|---|
+| Harga pangan Kota Bandung | [PIHPS Nasional](https://www.bi.go.id/hargapangan), Bank Indonesia | `ai/harga/dataset/`, cek harga wajar, tool `harga_pasar` |
+| Harga pangan (SP2KP) | Kementerian Perdagangan, lewat [Databoks](https://databoks.katadata.co.id) | `ai/harga/dataset/` |
+| Harga pangan Jawa Barat | Tepas Jabar (lewat Databoks), berita harga pasar, Disdagin Kota Bandung | `ai/harga/dataset/` |
+| Margin perdagangan dan pengangkutan | [Badan Pusat Statistik](https://www.bps.go.id) | Persentase tier harga demo (`scripts/demo/plan.ts`) |
+
+### Model, font, dan desain
+
+| Aset | Sumber | Lisensi |
+|---|---|---|
+| `indobenchmark/indobert-lite-base-p1` | [Hugging Face](https://huggingface.co/indobenchmark/indobert-lite-base-p1), IndoNLU | MIT |
+| `intfloat/multilingual-e5-small` | [Hugging Face](https://huggingface.co/intfloat/multilingual-e5-small) | MIT |
+| Gemini API | [Google AI](https://ai.google.dev) | [Gemini API Additional Terms](https://ai.google.dev/gemini-api/terms) |
+| Font Fredoka | [Google Fonts](https://fonts.google.com/specimen/Fredoka) lewat `next/font` | SIL Open Font License 1.1 |
+| Referensi gaya visual | "Grocery Website Design" oleh Obayedul Islam, Dribbble | Hanya inspirasi tata letak dan palet; tidak ada aset yang disalin |
+
+### Kode dan library pihak ketiga
+
+Semua library dipasang lewat npm dan pip sesuai versi di `package.json`, `ai/harga/requirements.txt`, dan `ai/training/requirements.txt`, masing-masing dengan lisensinya sendiri (Next.js, React, AI SDK, Supabase JS: MIT/Apache-2.0; pandas, scikit-learn: BSD-3-Clause; LightGBM: MIT). Tidak ada template atau kode pihak ketiga yang disalin langsung ke repo.
 
 <p align="center">
   <img src=".github/assets/footer.png" alt="GroUp: beli bareng, harga lebih ringan" width="100%">
