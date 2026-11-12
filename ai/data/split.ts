@@ -1,8 +1,28 @@
 import { normalizedDistance } from "@/lib/agent/extract";
 import { INTENTS } from "@/lib/agent/types";
 import type { IntentRow } from "./rows";
+import { normalize } from "./validate";
 
 const MIN_VAL_PER_INTENT = 10;
+
+/** Satu baris per teks dari gabungan beberapa file; tulisan manusia menang atas sintetis bila teksnya sama. */
+export function mergeExact(rows: IntentRow[]): { rows: IntentRow[]; duplicates: number; relabeled: number } {
+  const kept = new Map<string, IntentRow>();
+  let relabeled = 0;
+  for (const row of rows) {
+    const key = normalize(row.text);
+    const existing = kept.get(key);
+    if (!existing) {
+      kept.set(key, row);
+    } else if (existing.source === "synthetic" && row.source !== "synthetic") {
+      if (existing.intent !== row.intent) relabeled++;
+      kept.set(key, row);
+    } else if (existing.intent !== row.intent && existing.source !== "synthetic" && row.source === "synthetic") {
+      relabeled++;
+    }
+  }
+  return { rows: [...kept.values()], duplicates: rows.length - kept.size, relabeled };
+}
 
 export function dedupeAgainst(rows: IntentRow[], reference: IntentRow[], maxDistance = 0.15): IntentRow[] {
   return rows.filter((row) => !reference.some((ref) => normalizedDistance(row.text, ref.text) <= maxDistance));

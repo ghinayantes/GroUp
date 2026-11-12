@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { INTENTS } from "@/lib/agent/types";
 import { augment, mulberry32 } from "./augment";
 import { readJsonl, writeJsonl, type IntentRow } from "./rows";
-import { dedupeAgainst, stratifiedSplit } from "./split";
+import { dedupeAgainst, mergeExact, stratifiedSplit } from "./split";
 import { TEST_SET_RULES, TRAIN_SOURCE_RULES, validateRows } from "./validate";
 
 const DIR = "ai/data";
@@ -28,8 +28,15 @@ const test = load(`${DIR}/test.jsonl`, true);
 assertValid("test.jsonl", test, TEST_SET_RULES);
 const rawFiles = existsSync(`${DIR}/raw`) ? readdirSync(`${DIR}/raw`).filter((name) => name.endsWith(".jsonl")) : [];
 if (!rawFiles.length) throw new Error(`${DIR}/raw/*.jsonl belum ada.`);
-const pool = rawFiles.flatMap((name) => load(`${DIR}/raw/${name}`, true));
-assertValid("raw/*.jsonl", pool, TRAIN_SOURCE_RULES);
+const merged = mergeExact(
+  rawFiles.flatMap((name) => {
+    const rows = load(`${DIR}/raw/${name}`, true);
+    assertValid(`raw/${name}`, rows, TRAIN_SOURCE_RULES);
+    return rows;
+  }),
+);
+const pool = merged.rows;
+console.log(`Duplikat lintas file raw dilebur: ${merged.duplicates} (label sintetis diganti label tim: ${merged.relabeled})`);
 
 const clean = dedupeAgainst(pool, test);
 const rng = mulberry32(SEED);
