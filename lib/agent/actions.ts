@@ -5,6 +5,7 @@ import {
   ACTION_FAILED_TEXT,
   DISMISSED_TEXT,
   EXPIRED_TEXT,
+  NOTHING_TO_DISMISS_TEXT,
   ORDER_CODE_NOT_FOUND_TEXT,
   batchListReply,
   changeFormatText,
@@ -165,6 +166,7 @@ async function execute(session: AgentSession, ctx: ActionContext): Promise<Reply
 export async function executeConfirmation(buttonId: string, session: AgentSession | null, ctx: ActionContext): Promise<Reply[]> {
   const { deps, msg } = ctx;
   if (buttonId === BUTTON.DISMISS) {
+    if (!session) return [text(NOTHING_TO_DISMISS_TEXT)];
     await deps.sessions.remove(msg.channel, msg.senderKey);
     return [text(DISMISSED_TEXT)];
   }

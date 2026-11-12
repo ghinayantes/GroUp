@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { FIXTURE_BATCHES, FIXTURE_NOW } from "@/test/fixtures/batches";
 import { createMemoryDeps, type MemoryDeps } from "./adapters/memory";
-import { BATCH_UNAVAILABLE_TEXT, DISMISSED_TEXT, ORDER_CODE_NOT_FOUND_TEXT, ORDER_LOCKED_TEXT, menuText, notTextReply, shortCode } from "./copy";
+import { BATCH_UNAVAILABLE_TEXT, DISMISSED_TEXT, NOTHING_TO_DISMISS_TEXT, ORDER_CODE_NOT_FOUND_TEXT, ORDER_LOCKED_TEXT, menuText, notTextReply, shortCode } from "./copy";
 import { createEngine } from "./engine";
 import { senderHash, type IntentClassifier, type Stage2Agent } from "./ports";
 import { BUTTON, type InboundMessage, type Reply } from "./types";
@@ -204,6 +204,14 @@ describe("engine perintah baku", () => {
 
     expect(body(replies)).toBe(DISMISSED_TEXT);
     expect(await deps.sessions.get("whatsapp", SENDER)).toBeNull();
+  });
+
+  it("BATAL tanpa kode dan tanpa sesi tidak mengaku membatalkan apa pun", async () => {
+    const { deps, engine } = setup();
+    const { replies } = await engine.handle(textMsg("BATAL"));
+
+    expect(body(replies)).toBe(NOTHING_TO_DISMISS_TEXT);
+    expect(deps.writes).toEqual([]);
   });
 
   it("sesi kedaluwarsa dihapus sebelum diproses", async () => {
