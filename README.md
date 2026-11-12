@@ -437,7 +437,7 @@ Buka `/simulator` (tautan "Coba simulator" di header dan footer). Simulator mema
 Teks bebas dari WhatsApp dan simulator diproses tiga lapis:
 
 1. **Perintah baku** (`MULAI`, `PESANAN`, `UBAH`, `BATAL`, tombol) tanpa AI.
-2. **Tahap 1:** classifier intent lokal (ONNX, `models/intent-classifier/`). Selama artefak model belum ada, lapis ini dilewati.
+2. **Tahap 1:** classifier intent lokal (IndoBERT-lite, ONNX int8, `models/intent-classifier/`). Intent di atas ambang per intent langsung diproses tanpa LLM; sisanya diteruskan ke tahap 2.
 3. **Tahap 2:** model bahasa dengan tools baca-saja (`cari_batch`, `detail_batch`, `pesanan_saya`, `harga_pasar`). Teks dan riwayat diredaksi dulu (nomor telepon, email, deret angka panjang), angka di jawaban harus ada di hasil tool, dan setiap pengirim dibatasi 20 panggilan per jam (panggilan yang gagal ikut dihitung).
 
 Setiap aksi yang mengubah data tetap butuh tombol konfirmasi. Balasan AI diberi awalan 🤖, dan balasan AI pertama dalam 24 jam menautkan `/transparansi-ai`.
@@ -502,14 +502,14 @@ curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/cleanup
 
 | Komponen | Model / metode | Dipakai untuk | Batasan dan pengaman |
 |---|---|---|---|
-| Classifier intent (tahap 1) | Fine-tune `indobenchmark/indobert-lite-base-p1` atau `intfloat/multilingual-e5-small`, diekspor ke ONNX int8 | Mengenali 9 intent pesan WhatsApp tanpa memanggil LLM | Hanya dipakai kalau model cukup yakin (tebakan benar ≥ 97%). **Model belum dilatih, jadi saat ini semua pesan bebas langsung ditangani Gemini.** Lihat [model card](models/intent-classifier/MODEL_CARD.md) |
+| Classifier intent (tahap 1) | Fine-tune `indobenchmark/indobert-lite-base-p1` (dipilih dari dua kandidat, bersama `intfloat/multilingual-e5-small`), diekspor ke ONNX int8 (±12 MB) | Mengenali 9 intent pesan WhatsApp tanpa memanggil LLM | Hanya dipakai kalau model cukup yakin (ambang per intent untuk presisi ≥ 97%); pesan yang meragukan diteruskan ke Gemini. Di data uji: presisi 97,6% pada pesan yang diterima, 73,8% pesan selesai tanpa LLM, latensi p95 23,7 ms. Lihat [model card](models/intent-classifier/MODEL_CARD.md) |
 | Agen tahap 2 | Gemini `gemini-3.5-flash-lite` lewat AI SDK (bisa diganti ke AI Gateway / endpoint kompatibel OpenAI) | Menjawab pertanyaan bebas dengan tools baca-saja `cari_batch`, `detail_batch`, `pesanan_saya`, `harga_pasar` | Data pribadi diredaksi sebelum dikirim; angka di jawaban harus ada di hasil tool; 20 panggilan/jam per pengirim; aksi yang mengubah data wajib dikonfirmasi tombol; balasan diberi awalan 🤖 |
 | Ringkasan kepercayaan supplier | Model tahap 2 yang sama | Ringkasan 1–2 kalimat dari fakta supplier di database | Ringkasan yang memuat angka atau bulan di luar fakta, error, atau lebih dari 5 detik diganti template; cache 24 jam |
 | Harga pasar & prediksi | Naive baseline, model statistik, dan LightGBM dengan validasi walk-forward (`ai/harga/`) | Membandingkan harga batch dengan harga pasar dan status volatilitas | Model non-naive hanya dipilih bila menang ≥ 10% atas naive; MAPE validasi ditampilkan di UI |
 
 Semua fitur berbantuan AI diberi label "Dibantu AI" yang menautkan ke `/transparansi-ai`. Admin bisa memeriksa setiap keputusan agen di halaman Aktivitas AI.
 
-**Data dan evaluasi.** Data latih classifier sebagian besar sintetis: `ai/data/raw/train_wa.jsonl` dan `ai/data/raw/synthetic.jsonl` (dihasilkan `npm run data:generate` dengan model tahap 2). Data uji (`ai/data/test.jsonl`) ditulis manusia; saat ini baru 5 baris dari target ≥ 300. Format laporan eval ada di [`evals/REPORT.md`](evals/REPORT.md); angkanya baru terisi setelah classifier dilatih dan dataset uji lengkap.
+**Data dan evaluasi.** Data latih classifier sebagian besar sintetis: `ai/data/raw/train_wa.jsonl` dan `ai/data/raw/synthetic.jsonl` (dihasilkan `npm run data:generate` dengan model tahap 2). Data uji (`ai/data/test.jsonl`, 225 baris) ditulis manusia dan tidak pernah dipakai saat latihan atau kalibrasi. Di data itu classifier mencapai akurasi dan macro-F1 89,8%. Hasil lengkap ada di [`evals/REPORT.md`](evals/REPORT.md); suite e2e, extract, dan safety belum dibuat.
 
 ### AI dalam proses pengembangan
 
