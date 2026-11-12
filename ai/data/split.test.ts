@@ -31,6 +31,14 @@ describe("dedupeAgainst", () => {
     const kept = dedupeAgainst([row("mau ikut cabe 5kg"), row("kapan bayarnya kak", "tanya_info")], [row("mau ikut cabe 5 kg")]);
     expect(kept.map((r) => r.text)).toEqual(["kapan bayarnya kak"]);
   });
+
+  it("membuang baris latih yang membungkus teks uji berisi minimal 3 kata", () => {
+    const kept = dedupeAgainst(
+      [row("permisi min, dftr ayam 2kg ya"), row("dftr ayam 20kg buat warung"), row("pagi min saya mau ikut gula 10 kg")],
+      [row("dftr ayam 2kg"), row("pagi min", "sapaan")],
+    );
+    expect(kept.map((r) => r.text)).toEqual(["dftr ayam 20kg buat warung", "pagi min saya mau ikut gula 10 kg"]);
+  });
 });
 
 describe("stratifiedSplit", () => {

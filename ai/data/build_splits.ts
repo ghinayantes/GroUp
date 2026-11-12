@@ -41,7 +41,11 @@ console.log(`Duplikat lintas file raw dilebur: ${merged.duplicates} (label sinte
 const clean = dedupeAgainst(pool, test);
 const rng = mulberry32(SEED);
 const { train, val } = stratifiedSplit(clean, Math.min(MAX_VAL_SIZE, Math.round(clean.length * VAL_RATIO)), rng);
-const augmented = train.flatMap((row) => [row, ...augment(row.text, rng).map((text) => ({ ...row, text }))]);
+// Augmentasi dibuat setelah penyaringan, jadi variannya disaring lagi supaya tidak ada yang kembali sama dengan test.
+const augmented = [
+  ...train,
+  ...dedupeAgainst(train.flatMap((row) => augment(row.text, rng).map((text) => ({ ...row, text }))), test),
+];
 
 writeJsonl(`${DIR}/train.jsonl`, augmented);
 writeJsonl(`${DIR}/val.jsonl`, val);
