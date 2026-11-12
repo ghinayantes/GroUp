@@ -29,6 +29,8 @@ const SPECS: BatchSpec[] = [
   { commodity: "bawang_putih", name: "Bawang Putih", category: "Sayuran", minimum: 100, status: "failed", closesInHours: -360, fillers: [20, 15], buyer: { quantity: 3, payment: "not_due", fulfillment: "pending" } },
 ];
 
+export const DEMO_COMMODITIES = SPECS.map((spec) => spec.commodity);
+
 const FILLER_NAMES = ["Warung Bu Sari", "Kedai Raka", "Katering Melati", "Seblak Teh Wulan", "Dapur Pak Ujang", "Bakso Mang Adi", "Nasi Uduk Bu Eni"];
 
 const INTEREST_SPECS: { material: string; unit: string | null; frequency: "sekali" | "mingguan" | "bulanan"; quantity: number; senders: number[]; ageDays: number[] }[] = [
@@ -106,6 +108,8 @@ type PlanInput = {
   buyerId: string;
   uuid: () => string;
   codeHash: () => string;
+  /** URL publik foto bahan di bucket batch-images. */
+  imageUrl: (commodity: string) => string;
 };
 
 const hoursFrom = (now: Date, hours: number) => new Date(now.getTime() + hours * 3_600_000).toISOString();
@@ -139,7 +143,7 @@ export function buildDemoPlan(input: PlanInput): DemoPlan {
       material_name: spec.name,
       category: spec.category,
       unit: market.satuan,
-      image_url: null,
+      image_url: input.imageUrl(spec.commodity),
       min_quantity: spec.minimum,
       closes_at: closesAt,
       payment_instructions: "Tagihan dikirim lewat WhatsApp setelah batch berhasil. Transfer ke rekening Grosir Demo paling lambat 2 hari.",
@@ -188,7 +192,7 @@ export function buildDemoPlan(input: PlanInput): DemoPlan {
     if (spec.status === "open") {
       plan.openBatches.push({
         id, name: spec.name, category: spec.category, unit: market.satuan, supplierId: input.supplierId, supplier: input.supplierName, verified: true, supplierCompletedBatches: 3,
-        image: "", color: "#ead7c4", current: total, minimum: spec.minimum, closesAt, status: "open", acceptingOrders: true, tiers,
+        image: input.imageUrl(spec.commodity), color: "#ead7c4", current: total, minimum: spec.minimum, closesAt, status: "open", acceptingOrders: true, tiers,
         paymentInstructions: "", fulfillmentPlan: "", finalUnitPrice: null, fairPrice: null,
       });
     }

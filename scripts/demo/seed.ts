@@ -1,4 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import { parseArgs } from "node:util";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import prediksi from "@/ai/harga/output/prediksi.json";
@@ -7,8 +8,9 @@ import { loadIntentClassifier } from "@/lib/agent/stage1/classifier";
 import { BUTTON } from "@/lib/agent/types";
 import { withCache } from "@/evals/cache";
 import { runScenario, type Scenario } from "@/evals/scenario";
+import { BATCH_IMAGE_BUCKET } from "@/lib/batch-image";
 import { ROLES, type Role } from "@/lib/roles";
-import { buildDemoPlan, DEMO_SENDER_PREFIX } from "./plan";
+import { buildDemoPlan, DEMO_COMMODITIES, DEMO_SENDER_PREFIX } from "./plan";
 
 const { values: args } = parseArgs({ options: { "tanpa-llm": { type: "boolean", default: false } } });
 
@@ -75,6 +77,18 @@ async function ensureSupplier(ownerId: string) {
   return check("insert supplier", await supabase.from("suppliers").insert({ ...fields, created_at: joined }).select("id").single()).id as string;
 }
 
+/** Foto di images/, diunggah ulang setiap seed agar URL-nya selalu ada. */
+async function uploadImages() {
+  const urls: Record<string, string> = {};
+  for (const commodity of DEMO_COMMODITIES) {
+    const path = `demo/${commodity}.jpg`;
+    const file = await readFile(new URL(`./images/${commodity}.jpg`, import.meta.url));
+    check(`upload ${path}`, await supabase.storage.from(BATCH_IMAGE_BUCKET).upload(path, file, { contentType: "image/jpeg", upsert: true }));
+    urls[commodity] = supabase.storage.from(BATCH_IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+  }
+  return urls;
+}
+
 const SCENARIOS: Scenario[] = [
   ["menu"],
   ["mau ikut cabe 5 kilo", BUTTON.ORDER_CONFIRM],
@@ -128,6 +142,7 @@ async function simulateTraces(batches: Parameters<typeof runScenario>[1]["batche
 const ids = Object.fromEntries(await Promise.all(ROLES.map(async (role) => [role, await ensureDemoUser(role)] as const))) as Record<Role, string>;
 await clearSeed();
 const supplierId = await ensureSupplier(ids.grosir);
+const imageUrls = await uploadImages();
 const plan = buildDemoPlan({
   market: prediksi.prediksi,
   now: new Date(),
@@ -137,6 +152,7 @@ const plan = buildDemoPlan({
   buyerId: ids.pembeli,
   uuid: randomUUID,
   codeHash: () => createHash("sha256").update(randomBytes(18).toString("base64url")).digest("hex"),
+  imageUrl: (commodity) => imageUrls[commodity],
 });
 
 check("insert batch", await supabase.from("patungans").insert(plan.batches));
@@ -150,6 +166,6 @@ console.log([
   "Data demo siap:",
   `- 3 akun demo (${ROLES.join(", ")})`,
   `- supplier ${SUPPLIER_NAME} milik akun grosir demo, terverifikasi`,
-  `- ${plan.batches.length} batch, ${plan.orders.length} pesanan, ${plan.interests.length} minat permintaan`,
+  `- ${plan.batches.length} batch dengan foto bahan, ${plan.orders.length} pesanan, ${plan.interests.length} minat permintaan`,
   `- ${traces.rows.length} trace agen dari ${SCENARIOS.length} skenario simulator (classifier: ${traces.usedClassifier ? "ya" : "belum ada"}, LLM tahap 2: ${traces.usedStage2 ? "ya" : "tidak"})`,
 ].join("\n"));

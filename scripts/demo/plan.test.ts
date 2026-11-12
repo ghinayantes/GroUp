@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import prediksi from "@/ai/harga/output/prediksi.json";
-import { buildDemoPlan, DEMO_SENDER_PREFIX, priceAt } from "./plan";
+import { buildDemoPlan, DEMO_COMMODITIES, DEMO_SENDER_PREFIX, priceAt } from "./plan";
 
 let counter = 0;
 const plan = buildDemoPlan({
@@ -12,6 +12,7 @@ const plan = buildDemoPlan({
   buyerId: "buyer",
   uuid: () => `id-${++counter}`,
   codeHash: () => "hash",
+  imageUrl: (commodity) => `https://img.test/${commodity}.jpg`,
 });
 
 describe("buildDemoPlan", () => {
@@ -70,6 +71,12 @@ describe("buildDemoPlan", () => {
     expect(plan.interests.length).toBeLessThanOrEqual(45);
     expect(senders.size).toBe(15);
     expect([...senders].every((sender) => String(sender).startsWith(DEMO_SENDER_PREFIX))).toBe(true);
+  });
+
+  it("setiap batch memakai foto bahannya sendiri", () => {
+    expect(plan.batches.map((batch) => batch.image_url)).toEqual(DEMO_COMMODITIES.map((commodity) => `https://img.test/${commodity}.jpg`));
+    expect(new Set(plan.batches.map((batch) => batch.image_url)).size).toBe(plan.batches.length);
+    expect(plan.openBatches.every((batch) => batch.image.startsWith("https://img.test/"))).toBe(true);
   });
 
   it("batch terbuka disiapkan untuk simulasi agen", () => {
