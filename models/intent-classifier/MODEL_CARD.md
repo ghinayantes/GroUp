@@ -10,12 +10,11 @@ Kandidat `indobenchmark/indobert-lite-base-p1` dan `intfloat/multilingual-e5-sma
 
 ## Data
 - Latih: semua file `ai/data/raw/*.jsonl`, ditambah augmentasi (tukar huruf, singkatan, huruf kecil tanpa tanda baca). Hanya set latih yang diaugmentasi.
-  - `train_wa.jsonl`: 498 baris sintetis (±56 per intent) dari dataset few-shot `train_wa`. Model atau penulis pembuatnya belum dicatat; isi sebelum rilis.
   - `synthetic.jsonl`: keluaran `npm run data:generate` dari model tahap 2 yang aktif (production: `google/gemini-3.5-flash-lite`). Syarat Gemini API (berlaku 23 Maret 2026) melarang memakai layanan untuk mengembangkan model yang bersaing dengan Gemini API/AI Studio. Classifier 9 intent ini bukan model bahasa umum dan tidak bersaing dengan layanan itu. Syaratnya tidak mengatur langsung pemakaian output untuk melatih model lain.
-  - `team.jsonl`: tulisan tim, bila ada.
+  - `team.jsonl`: 275 baris tulisan tim (±31 per intent), sisa dari pool tim `train_wa` setelah 25 per intent diambil untuk test (seed 42). Field `source` di file asalnya tertulis `synthetic`; menurut pemilik proyek seluruh pool ditulis tim, jadi dilabeli ulang `team`. 3 baris yang identik dengan `synthetic.jsonl` dibuang.
 - Val: 20% pool (maks. 300 baris), dipisah sebelum augmentasi, minimal 10 per intent. Dipakai untuk kalibrasi ambang.
-- Test: ≥ 150 baris tulisan manusia (≥ 15 per intent), tidak pernah dilihat saat latihan maupun kalibrasi; baris latih yang mirip (jarak edit ternormalisasi ≤ 0,15) dibuang.
-- Komposisi per sumber dan per intent: menunggu (`npm run data:build`).
+- Test: 225 baris tulisan tim (25 per intent) dari pool yang sama dengan `team.jsonl`, tidak pernah dilihat saat latihan maupun kalibrasi; baris latih yang mirip (jarak edit ternormalisasi ≤ 0,15) dibuang.
+- Komposisi setelah `npm run data:build` (12 Nov 2026): train 9.073 baris setelah augmentasi (±1.000 per intent), val 302 (33–35 per intent), test 225. Dua baris latih dibuang karena terlalu mirip test.
 
 ## Hiperparameter
 `max_length` 64, `lr` 3e-5, batch 32, maks. 6 epoch dengan early stopping (macro-F1 val), seed 42. Ekspor ONNX lewat Optimum, kuantisasi int8 dinamis (AVX2).
@@ -34,6 +33,7 @@ Tahap 2 memakai tier gratis Gemini API. Menurut syaratnya, untuk layanan tidak b
 ## Batasan yang diketahui
 - Bahasa daerah yang jarang, pesan sangat panjang (dipotong di 64 token), sarkasme, dan pesan berisi beberapa maksud.
 - Data latih sebagian besar sintetis; selisih presisi val dan test menandakan data latih kurang mirip pesan manusia.
+- Test dan `team.jsonl` ditulis oleh tim yang sama dalam satu pool, sehingga gaya tulisannya mirip. Pemisahan hanya membuang baris yang hampir identik (jarak edit ≤ 0,15), jadi angka test kemungkinan lebih tinggi daripada pada chat pelanggan asli.
 - Model hanya memilih intent. Batch, jumlah, dan kode pesanan diambil ekstraktor deterministik (`lib/agent/extract.ts`).
 
 ## Penggunaan yang tidak dimaksudkan

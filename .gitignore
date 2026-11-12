@@ -28,3 +28,6 @@ npm-debug.log*
 /.claude
 # demo seed LLM cache
 /evals/cache/demo-seed
+# hasil npm run data:build
+/ai/data/train.jsonl
+/ai/data/val.jsonl
