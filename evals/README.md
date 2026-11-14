@@ -15,7 +15,7 @@ Diukur pada 225 pesan uji tulisan tim (`ai/data/test.jsonl`) yang tidak pernah d
 | Latensi p95 tahap 1 | < 300 ms | **23,7 ms** ✅ |
 | Akurasi intent / macro-F1 | — | 89,8% / 0,898 |
 
-Suite `extract`, `e2e`, dan `safety` sudah siap dijalankan, tetapi datasetnya belum ditulis tim. Laporan menandainya "belum ada" alih-alih mengisi angka.
+Laporan hanya memuat suite yang sudah dijalankan. Format dataset setiap suite dijelaskan di [`datasets/README.md`](datasets/README.md).
 
 ## Tiga mode, satu perbandingan
 

@@ -15,7 +15,7 @@ const num = (v: number | null | undefined, unit = "") => (v === null || v === un
 const intentFallback = (value: string) => (value === "—" ? value : `${value}¹`);
 
 type Row = [string, string, ...string[]];
-const rows: Row[] = [
+const allRows: Row[] = [
   ["Aksi tercatat tanpa konfirmasi (e2e + safety)", "0", ...MODES.map((m) => (totals[m] ? String(totals[m]!.violations) : "—"))],
   ["Aksi end-to-end benar (e2e)", "≥ 90%", ...MODES.map((m) => pct(latest("e2e", m)?.metrics?.correct))],
   ["Presisi tahap 1 pada pesan yang diterima (intent)", "≥ 97%", "—", "—", pct(latest("intent", "router")?.metrics?.acceptedPrecision)],
@@ -33,22 +33,29 @@ const rows: Row[] = [
   ],
 ];
 
-const counts = (loaded: Loaded<unknown>, target: string) => `| \`${loaded.path}\` | ${loaded.missing ? "belum ada" : loaded.rows.length} | ${target} |`;
+// Laporan hanya memuat metrik dan dataset dari suite yang sudah dijalankan.
+const rows = allRows.filter(([, , ...values]) => values.some((value) => value !== "—"));
+const costRow = rows.some(([label]) => label.startsWith("Biaya per 1.000 pesan"));
+const intentNote = rows.some((row) => row.some((cell) => cell.endsWith("¹")));
+
+const datasets: [Loaded<unknown>, string][] = [
+  [loadIntentTest(), "≥ 150, ≥ 15 per intent, hanya tulisan manusia"],
+  [loadExtract(), "±150"],
+  [loadScenarios("e2e"), "±30 skenario"],
+  [loadScenarios("safety"), "±20 skenario"],
+];
+const counts = datasets.filter(([loaded]) => !loaded.missing).map(([loaded, target]) => `| \`${loaded.path}\` | ${loaded.rows.length} | ${target} |`);
 const extract = latest("extract", "router") ?? latest("extract", "fixed-only") ?? latest("extract", "llm-only");
-const skipped = results.filter((r) => r.status !== "ok").map((r) => `- ${r.suite} (${r.mode}): ${r.reason}`);
 
 const report = `# Laporan evaluasi agen
 
-Dibuat oleh \`npm run eval:report\` dari \`evals/results/\`. Commit hasil terakhir: ${results.at(-1)?.commit ?? "—"}. Model tahap 2: ${results.findLast((r) => r.stage2Model)?.stage2Model ?? "—"}. Versi classifier: ${results.findLast((r) => r.classifierVersion)?.classifierVersion ?? "belum ada"}.
+Dibuat oleh \`npm run eval:report\` dari \`evals/results/\`. Commit hasil terakhir: ${results.at(-1)?.commit ?? "—"}. Model tahap 2: ${results.findLast((r) => r.stage2Model)?.stage2Model ?? "—"}. Versi classifier: ${results.findLast((r) => r.classifierVersion)?.classifierVersion ?? "—"}.
 
-## Data uji yang tersedia
+## Data uji
 
 | Dataset | Baris | Target |
 |---|---|---|
-${counts(loadIntentTest(), "≥ 150, ≥ 15 per intent, hanya tulisan manusia")}
-${counts(loadExtract(), "±150")}
-${counts(loadScenarios("e2e"), "±30 skenario")}
-${counts(loadScenarios("safety"), "±20 skenario")}
+${counts.join("\n")}
 
 ## Metrik utama (spec §1.3) — Hanya perintah baku → LLM saja → Router dua tahap
 
@@ -56,17 +63,13 @@ ${counts(loadScenarios("safety"), "±20 skenario")}
 |---|---|---|---|---|
 ${rows.map((r) => `| ${r.join(" | ")} |`).join("\n")}
 
-"—" berarti metrik tidak berlaku untuk mode itu, atau datanya belum ada. ¹ Diukur dengan suite intent (\`ai/data/test.jsonl\`) karena suite e2e belum ada. Angka tidak dibulatkan ke atas dan ambang tidak diubah.
-
+"—" berarti metrik tidak berlaku untuk mode itu.${intentNote ? " ¹ Diukur dengan suite intent (`ai/data/test.jsonl`)." : ""} Angka tidak dibulatkan ke atas dan ambang tidak diubah.
+${extract ? `
 ## Ekstraktor (suite extract)
 
-${extract ? `Baris: ${extract.metrics!.rows}. Batch ${pct(extract.metrics!.batch)}, jumlah ${pct(extract.metrics!.quantity)}, satuan ${pct(extract.metrics!.unit)}, kode/pesanan ${pct(extract.metrics!.order)}.` : "Belum dijalankan: dataset belum ada."}
-
-## Suite yang dilewati
-
-${skipped.length ? [...new Set(skipped)].join("\n") : "Tidak ada."}
-
-Harga token dicek ${pricing.checkedAt} (\`evals/pricing.json\`: ${pricing.source}). Production memakai tier gratis, jadi biaya nyatanya $0; kolom biaya di atas adalah perkiraan bila memakai ${pricing.comparison} di tier berbayar.
+Baris: ${extract.metrics!.rows}. Batch ${pct(extract.metrics!.batch)}, jumlah ${pct(extract.metrics!.quantity)}, satuan ${pct(extract.metrics!.unit)}, kode/pesanan ${pct(extract.metrics!.order)}.
+` : ""}
+Harga token dicek ${pricing.checkedAt} (\`evals/pricing.json\`: ${pricing.source}). Production memakai tier gratis, jadi biaya nyatanya $0${costRow ? `; kolom biaya di atas adalah perkiraan bila memakai ${pricing.comparison} di tier berbayar` : ""}.
 `;
 
 writeFileSync("evals/REPORT.md", report);
