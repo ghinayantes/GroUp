@@ -80,17 +80,25 @@ Seed membuat 8 batch bahan pokok dengan harga yang mengikuti pasar Bandung. Patu
 
 Dasarnya margin perdagangan dan pengangkutan BPS: cabai ±25%, bawang ±23%, daging ayam ±12%, beras, minyak, gula, dan telur ±9–11%. Tier 1 memangkas sekitar sepertiga margin itu, tier 2 sekitar setengahnya.
 
-Foto tiap batch ada di `scripts/demo/images/` dan diunggah ke bucket `batch-images` saat seed.
+Foto tiap batch ada di `scripts/demo/images/` dan diunggah ke bucket `batch-images` saat seed. Rincian seed, rekaman video, dan klip simulator ada di [`scripts/demo/README.md`](scripts/demo/README.md).
 
 ## Isi repo
 
+Folder bertanda 📖 punya README sendiri. Untuk juri, urutan baca yang disarankan: **agen AI → evaluasi → data dan model**.
+
 | Folder | Isi |
 |---|---|
-| `app/` | Halaman website, dashboard, dan API |
-| `lib/agent/` | Otak chat WhatsApp dan simulator |
-| `lib/trust/` | Cek harga wajar, kartu supplier, radar permintaan |
-| `supabase/` | Skema database dan tes |
-| `ai/` · `evals/` · `models/` | Data harga, pelatihan, dan evaluasi AI |
+| 📖 [`lib/agent/`](lib/agent/README.md) | Otak chat WhatsApp dan simulator: alur tiga lapis, peta file, dan lapisan pengaman |
+| 📖 [`evals/`](evals/README.md) | Cara agen diuji, hasil terbaru, dan perbandingan tiga mode |
+| 📖 [`ai/`](ai/README.md) | Dataset intent, [pelatihan classifier](ai/training/README.md), dan [pipeline harga pasar PIHPS](ai/harga/README.md) |
+| `models/intent-classifier/` | Model ONNX tahap 1 beserta [model card](models/intent-classifier/MODEL_CARD.md) |
+| `lib/trust/` | Cek harga wajar, kartu supplier, radar permintaan (lihat [AI kepercayaan](#panduan-teknis)) |
+| 📖 [`supabase/`](supabase/README.md) | Skema database, aturan bisnis di SQL, migrasi, dan tes pgTAP |
+| 📖 [`scripts/demo/`](scripts/demo/README.md) | Seed data demo, rekaman video, dan klip simulator |
+| `app/` | Halaman website, dashboard (`admin/`, `grosir/`, `akun/`), dan API (`api/`) |
+| `components/` | Komponen UI per area: `site/`, `dashboard/`, `trust/`, `showcase/`, `admin/`, `auth/` |
+| `public/demo/` | Klip simulator yang diputar di halaman depan |
+| `test/` | Fixture dan stub bersama untuk Vitest |
 
 ## Tes
 
@@ -112,16 +120,7 @@ Klik untuk membuka tiap bagian.
 
 1. Buat proyek Supabase dan buat file lokal `.env.local` di root proyek.
 2. Isi `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, dan `SUPABASE_SECRET_KEY`. Jangan pernah menaruh secret key di variabel `NEXT_PUBLIC_` atau di browser.
-3. Terapkan semua file di `supabase/migrations/` secara berurutan lewat Supabase SQL Editor atau `supabase db push`:
-
-   | Migrasi | Isi |
-   |---|---|
-   | `20261030165820_create_patungan_ordering.sql` | Skema awal patungan |
-   | `20261103090000_align_with_design.sql` | Penyesuaian dengan desain |
-   | `20261106090000_agent_router.sql` | Kanal `simulator`, tabel `agent_messages`, `agent_traces`, `demand_interests`, kolom `channel` dan `pending_action` di `whatsapp_sessions`, batas 50 pesanan simulator aktif per batch, fungsi `purge_simulator_orders` dan `cleanup_agent_data` |
-   | `20261112090000_storage_buckets.sql` | Bucket `batch-images` (foto batch) dan `site-media` |
-   | `20261113090000_roles_and_demo.sql` | `suppliers.owner_user_id`, `orders.buyer_user_id`, kolom `tools` di trace agen, penanda `demo_seed`, fungsi `link_supplier_owner` dan `reset_demo_data` |
-   | `20261114090000_supplier_trust.sql` | Cache ringkasan kepercayaan supplier |
+3. Terapkan semua file di `supabase/migrations/` secara berurutan lewat Supabase SQL Editor atau `supabase db push`. Daftar 8 migrasi dan isinya ada di [`supabase/README.md`](supabase/README.md#migrasi).
 
 4. Aktifkan Email/Password di Supabase Auth. Peran akun disimpan di `app_metadata.role` (`admin`, `grosir`, atau `pembeli`) dan hanya bisa diubah dengan service role. Tidak ada pendaftaran publik. Untuk admin pertama, jalankan di SQL Editor proyek sendiri (ganti alamatnya):
 
@@ -257,7 +256,7 @@ Buka `/simulator` (tautan "Coba simulator" di header dan footer). Simulator mema
 <details>
 <summary><b>Agen AI</b></summary>
 
-Teks bebas dari WhatsApp dan simulator diproses tiga lapis:
+Diagram alur, peta file, dan daftar pengaman lengkapnya ada di [`lib/agent/README.md`](lib/agent/README.md). Teks bebas dari WhatsApp dan simulator diproses tiga lapis:
 
 1. **Perintah baku** (`MULAI`, `PESANAN`, `UBAH`, `BATAL`, tombol) tanpa AI.
 2. **Tahap 1:** classifier intent lokal (ONNX, `models/intent-classifier/`). Selama artefak model belum ada, lapis ini dilewati.
@@ -291,7 +290,7 @@ npm run eval -- --mode router   # juga: --mode fixed-only, --mode llm-only, --su
 npm run eval:report         # tulis evals/REPORT.md
 ```
 
-Pelatihan dijalankan di Colab (`ai/training/intent_classifier.ipynb`). Format dataset: `ai/data/intent_guidelines.md` dan `evals/datasets/README.md`. Hasil eval: [`evals/REPORT.md`](evals/REPORT.md); model card: [`models/intent-classifier/MODEL_CARD.md`](models/intent-classifier/MODEL_CARD.md).
+Pelatihan dijalankan di Colab ([`ai/training/`](ai/training/README.md)). Format dataset: `ai/data/intent_guidelines.md` dan `evals/datasets/README.md`. Cara eval: [`evals/README.md`](evals/README.md); hasil: [`evals/REPORT.md`](evals/REPORT.md); model card: [`models/intent-classifier/MODEL_CARD.md`](models/intent-classifier/MODEL_CARD.md).
 
 </details>
 
