@@ -6,6 +6,8 @@ export const BATCH_LIST_SECTION_TITLE = "Batch terbuka";
 
 export const EXPIRED_TEXT = "Pilihan ini sudah kedaluwarsa. Ketik MULAI atau PESANAN ya.";
 export const DISMISSED_TEXT = "Pilihan dibatalkan. Kirim MULAI kapan saja untuk melihat batch terbuka.";
+export const NOTHING_TO_DISMISS_TEXT =
+  "Tidak ada pilihan yang sedang berjalan. Kirim MULAI untuk melihat batch terbuka, atau BATAL <kode> untuk membatalkan pesanan.";
 export const ORDER_CODE_NOT_FOUND_TEXT = "Kode pesanan tidak ditemukan di daftar pesananmu. Kirim PESANAN untuk melihat kodenya.";
 export const ORDER_LOCKED_TEXT = "Batch untuk pesanan ini sudah ditutup, jadi pesanannya tidak bisa diubah atau dibatalkan lagi.";
 export const BATCH_UNAVAILABLE_TEXT = "Batch tersebut sudah tidak tersedia. Kirim MULAI untuk melihat batch terbaru.";
