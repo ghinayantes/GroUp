@@ -84,10 +84,11 @@ Foto tiap batch ada di `scripts/demo/images/` dan diunggah ke bucket `batch-imag
 
 ## Isi repo
 
-Folder bertanda 📖 punya README sendiri. Untuk juri, urutan baca yang disarankan: **agen AI → evaluasi → data dan model**.
+Folder bertanda 📖 punya README sendiri. Untuk juri, urutan baca yang disarankan: **PRD → agen AI → evaluasi → data dan model**.
 
 | Folder | Isi |
 |---|---|
+| 📖 [`docs/PRD.md`](docs/PRD.md) | Dokumen kebutuhan produk: masalah, persona, tujuan, kebutuhan beserta statusnya, metrik, dan risiko |
 | 📖 [`lib/agent/`](lib/agent/README.md) | Otak chat WhatsApp dan simulator: alur tiga lapis, peta file, dan lapisan pengaman |
 | 📖 [`evals/`](evals/README.md) | Cara agen diuji, hasil terbaru, dan perbandingan tiga mode |
 | 📖 [`ai/`](ai/README.md) | Dataset intent, [pelatihan classifier](ai/training/README.md), dan [pipeline harga pasar PIHPS](ai/harga/README.md) |
