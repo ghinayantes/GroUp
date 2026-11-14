@@ -7,7 +7,7 @@ Folder ini berisi semua bahan mentah AI GroUp. Kode yang **memakai** hasilnya ad
 | | Classifier intent | Harga pasar |
 |---|---|---|
 | **Tugas** | Memahami maksud pesan chat pembeli ("cabe 5 kilo" → `pesan_baru`) | Menyediakan harga pasar terkini dan status volatilitas 13 bahan baku |
-| **Data** | 20.502 pesan berlabel (`data/`) | Harga bulanan 2026 Kota Bandung dari PIHPS, SP2KP, dan berita (`harga/dataset/`) |
+| **Data** | 20.502 pesan berlabel (`data/`) | Harga 2026 dari tujuh sumber (`harga/dataset/`). Model hanya memakai PIHPS Kota Bandung; SP2KP, Tepas, dan berita menjadi pembanding ([rincian](harga/README.md#sumber-data)) |
 | **Model** | IndoBERT-lite, ONNX int8 **12,2 MB** | Naive, rata-rata bergerak 3 bulan, atau exponential smoothing, dipilih per komoditas lewat uji walk-forward |
 | **Hasil uji** | Presisi **97,6%** pada pesan yang diterima, 73,8% pesan selesai tanpa LLM | MAPE validasi per komoditas, tercatat di `prediksi.json` |
 | **Dipakai di** | Tahap 1 agen chat | Tool `harga_pasar`, cek harga wajar, asisten buka batch, seed demo |

@@ -4,12 +4,34 @@ Harga pasar terkini dan status volatilitas untuk 13 bahan baku UMKM kuliner Kota
 
 ## Struktur
 
-- `dataset/` — CSV gabungan harga 2026 (PIHPS, SP2KP, berita).
+- `dataset/` — CSV gabungan harga 2026 dari tujuh sumber (lihat [Sumber data](#sumber-data)).
 - `src/harga/` — pipeline: load → cleaning → model + walk-forward → prediksi.
 - `notebooks/data_train.ipynb` — narasi EDA, pemilihan model, dan hasil.
 - `tests/` — test pipeline (pytest).
 - `train.py` — latih ulang tanpa notebook.
 - `output/` — hasil: `prediksi.csv`, `prediksi.json`, model `*.joblib`, `cache_meta.json`.
+
+## Sumber data
+
+`dataset/dataset_gabungan_komoditas_2026.csv` berisi 610 baris harga eceran dari tujuh sumber. Kolom `sumber_id` menunjukkan asal setiap baris.
+
+| `sumber_id` | Sumber | Level | Baris | Periode | Dipakai untuk |
+|---|---|---|---|---|---|
+| `PIHPS` | Pusat Informasi Harga Pangan Strategis (PIHPS) Nasional, Bank Indonesia | Kota Bandung | 341 | Jan–2 Nov 2026 | **Seri target**: model, `prediksi.json`, dan harga pasar di aplikasi |
+| `sp2kp_databoks` | Sistem Pemantauan Pasar Kebutuhan Pokok (SP2KP), Kementerian Perdagangan, via Databoks | Jawa Barat | 205 | 28 Apr–30 Okt 2026 | Pembanding saat analisis |
+| `pasar_berita` | Berita harga di pasar tradisional | Kota Bandung | 36 | Feb–Sep 2026 | Pembanding saat analisis |
+| `disdagin_berita` | Rilis dan berita Disdagin Kota Bandung | Kota Bandung | 12 | Feb–Jun 2026 | Pembanding saat analisis |
+| `bisnis_pihps_jabar` | Berita Bisnis.com yang mengutip PIHPS | Jawa Barat | 10 | 19 Feb 2026 | Pembanding saat analisis |
+| `pihps_berita` | Berita yang mengutip PIHPS | Kota Bandung | 3 | 23 Okt 2026 | Pembanding saat analisis |
+| `tepas_jabar_databoks` | Tepas Jabar via Databoks (komoditas ikan) | Jawa Barat | 3 | 30 Okt 2026 | Pembanding saat analisis |
+
+**Hanya PIHPS yang masuk model** (`SUMBER_TARGET` di `src/harga/config.py`). Sumber lain tidak digabung ke seri target karena tiga alasan:
+
+- **Cakupan berbeda.** SP2KP dan Tepas berlevel Jawa Barat, bukan Kota Bandung.
+- **Definisi dan satuan berbeda.** Harga beras SP2KP (±Rp13.100–13.400/kg) lebih rendah daripada PIHPS (±Rp15.150–15.600/kg), dan SP2KP mencatat minyak goreng per liter, sedangkan PIHPS per kg.
+- **Data jarang atau beku.** Sumber berita hanya berisi titik lepas, dan sebagian seri SP2KP bernilai sama selama berminggu-minggu.
+
+Notebook `notebooks/data_train.ipynb` memakai sumber-sumber ini untuk memvalidasi tren PIHPS.
 
 ## Setup
 
