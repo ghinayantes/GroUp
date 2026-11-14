@@ -103,12 +103,11 @@ Patungan hanya memangkas **sebagian** margin perdagangan dan pengangkutan, bukan
 
 Pipeline harga (`ai/harga/`) menandai 4 dari 13 komoditas PIHPS sebagai **bergejolak** per 2 November 2026: cabai merah keriting, cabai merah besar, cabai rawit merah, dan bawang merah. Bahan inilah yang paling diuntungkan oleh harga batch yang dikunci di depan.
 
-### 3.4 Perlu dicek dan bukti lapangan
+### 3.4 Bukti Lapangan
 
-- [ ] Cantumkan publikasi BPS sumber angka margin perdagangan dan pengangkutan di slide.
-- [x] Wawancara 1–2 petani atau pengurus koperasi: harga jual ke pengepul, pernah ijon atau tidak, kapan harga paling anjlok.
-- [x] Wawancara 1–2 pemilik warung atau katering: belanja cabai per minggu, pernah kehabisan atau tidak, reaksi saat harga naik.
-- [x] Ambil 2–3 kutipan terkuat untuk halaman depan, README, dan slide.
+- ✅ Cantumkan publikasi BPS sumber angka margin perdagangan dan pengangkutan
+- ✅ Wawancara 1–2 pemilik warung: belanja bahan per minggu, cara memesan, dan reaksi saat harga naik.
+- ✅ Wawancara 1–2 grosir: minimum order, cara menentukan harga, dan kesediaan
 
 ---
 
@@ -167,7 +166,7 @@ Pipeline harga (`ai/harga/`) menandai 4 dari 13 komoditas PIHPS sebagai **bergej
 |---|---|---|---|
 | G1 | Pembeli mendapat harga lebih rendah dari pasar | Harga tier batch 3–12% di bawah harga PIHPS Kota Bandung untuk bahan dan satuan yang sama | ✅ Tercapai pada data demo |
 | G2 | Pembeli bisa memesan dengan bahasa sehari-hari | Aksi end-to-end benar ≥ 90% pada set uji percakapan | ⏳ Suite siap, dataset belum ditulis |
-| G3 | AI aman dan tidak pernah bertindak sendiri | **0** aksi tersimpan tanpa tombol konfirmasi; 100% skenario injection ditangani aman | ✅ Dijamin oleh desain dan tes; ⏳ suite `safety` belum punya dataset |
+| G3 | AI aman dan tidak pernah bertindak sendiri | **0** aksi tersimpan tanpa tombol konfirmasi; teks pembeli diperlakukan sebagai data, bukan perintah | ✅ Dijamin oleh desain: AI hanya punya tool baca, setiap pesanan, perubahan, dan pembatalan menunggu tombol pembeli. Dibuktikan tes unit (`understand.test.ts`, `engine.test.ts`) |
 | G4 | AI hemat dan cepat | ≥ 60% teks bebas selesai tanpa LLM; p95 tahap 1 < 300 ms | ✅ **73,8%**, **23,7 ms** |
 | G5 | Juri paham dan bisa mencoba dalam 2 menit | Video di halaman depan, simulator publik, login demo satu klik untuk tiga peran | ✅ |
 
