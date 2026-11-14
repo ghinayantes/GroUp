@@ -324,7 +324,7 @@ Semua halaman publik berada di `app/(site)/` dan memakai header (pencarian + kat
 
 | Rute | Isi |
 |---|---|
-| `/` | Hero dengan video demo, harga pasar vs patungan, tiga manfaat AI, simulator, strip metrik eval, tombol "Coba sebagai …", kategori, batch minggu ini, hitung mundur batch terdekat |
+| `/` | Hero dengan video demo, harga pasar vs patungan, tiga manfaat AI, simulator, tombol "Coba sebagai …", kategori, batch minggu ini, hitung mundur batch terdekat |
 | `/patungan` | Katalog batch terbuka dengan pencarian, filter (kategori, hampir capai kuota, tutup ≤ 3 hari, supplier terverifikasi), dan urutan. Filter tersimpan di URL, misalnya `/patungan?kategori=sayuran&sort=progres` |
 | `/patungan/<id>` | Detail batch: tier harga, aturan pembayaran/penyerahan, riwayat batch supplier, form pesanan |
 | `/kategori`, `/kategori/<slug>` | Daftar kategori dan katalog per kategori |
@@ -339,7 +339,7 @@ Semua halaman publik berada di `app/(site)/` dan memakai header (pencarian + kat
 <details>
 <summary><b>Halaman depan dan video demo</b></summary>
 
-Hero menampilkan video demo dari `NEXT_PUBLIC_DEMO_VIDEO_URL` dan `NEXT_PUBLIC_DEMO_POSTER_URL`; tanpa env ini tampil gambar statis. Perbandingan harga pasar disembunyikan bila tidak ada data pasar. Strip metrik memakai `evals/summary.ts` (sama dengan `eval:report`) dan hanya tampil bila hasil eval router ada dan `ai/data/test.jsonl` tidak kosong.
+Hero menampilkan video demo dari `NEXT_PUBLIC_DEMO_VIDEO_URL` dan `NEXT_PUBLIC_DEMO_POSTER_URL`; tanpa env ini tampil gambar statis. Perbandingan harga pasar disembunyikan bila tidak ada data pasar.
 
 Rekam video (butuh `ffmpeg` di PATH dan browser Playwright, sekali: `npx playwright install chromium`):
 
@@ -531,10 +531,13 @@ Gambar README di `.github/assets/` dan screenshot aplikasi dibuat sendiri oleh t
 
 | Data | Sumber | Dipakai di |
 |---|---|---|
-| Harga pangan Kota Bandung | [PIHPS Nasional](https://www.bi.go.id/hargapangan), Bank Indonesia | `ai/harga/dataset/`, cek harga wajar, tool `harga_pasar` |
-| Harga pangan (SP2KP) | Kementerian Perdagangan, lewat [Databoks](https://databoks.katadata.co.id) | `ai/harga/dataset/` |
-| Harga pangan Jawa Barat | Tepas Jabar (lewat Databoks), berita harga pasar, Disdagin Kota Bandung | `ai/harga/dataset/` |
+| Harga pangan Kota Bandung | [PIHPS Nasional](https://www.bi.go.id/hargapangan), Bank Indonesia | `ai/harga/dataset/`, model harga pasar, cek harga wajar, tool `harga_pasar` |
+| Harga pangan Jawa Barat (SP2KP) | Kementerian Perdagangan, lewat [Databoks](https://databoks.katadata.co.id) | `ai/harga/dataset/`, pembanding saat analisis |
+| Harga ikan Jawa Barat | Tepas Jabar, lewat [Databoks](https://databoks.katadata.co.id) | `ai/harga/dataset/`, pembanding saat analisis |
+| Berita harga pangan | Rilis dan berita Disdagin Kota Bandung, Bisnis.com, dan berita harga pasar tradisional yang mengutip PIHPS | `ai/harga/dataset/`, pembanding saat analisis |
 | Margin perdagangan dan pengangkutan | [Badan Pusat Statistik](https://www.bps.go.id) | Persentase tier harga demo (`scripts/demo/plan.ts`) |
+
+Model harga pasar hanya memakai PIHPS Kota Bandung. Sumber lain berbeda cakupan atau satuan, jadi hanya dipakai untuk memvalidasi tren. Jumlah baris, periode, dan alasan per sumber ada di [`ai/harga/README.md`](ai/harga/README.md#sumber-data).
 
 ### Model, font, dan desain
 

@@ -1,13 +1,13 @@
 WEBVTT
 
-00:00:00.500 --> 00:00:03.900
+00:00:00.500 --> 00:00:03.700
 Pesan masuk: Pesan berisi perintah
 
-00:00:03.900 --> 00:00:05.800
-Dipahami: Diperlakukan sebagai data
+00:00:03.700 --> 00:00:05.500
+Dipahami: Classifier ragu, diteruskan ke LLM
 
-00:00:05.800 --> 00:00:07.400
+00:00:05.500 --> 00:00:07.100
 Dicek: Tidak ada aksi yang aman
 
-00:00:07.400 --> 00:00:10.700
+00:00:07.100 --> 00:00:10.300
 Ditindaklanjuti: Dialihkan ke menu, tanpa pesanan

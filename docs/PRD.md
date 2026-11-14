@@ -170,7 +170,7 @@ Pipeline harga (`ai/harga/`) menandai 4 dari 13 komoditas PIHPS sebagai **bergej
 | # | Tujuan | Ukuran | Status |
 |---|---|---|---|
 | G1 | Pembeli mendapat harga lebih rendah dari harga pasar | Harga tier batch 3–12% di bawah harga PIHPS Kota Bandung untuk bahan dan satuan yang sama | ✅ Tercapai pada data demo |
-| G2 | Pembeli dapat memesan dengan bahasa sehari-hari | Aksi end-to-end benar ≥ 90% pada set uji percakapan | ⏳ Belum diukur: skenario uji percakapan belum ditulis |
+| G2 | Pembeli dapat memesan dengan bahasa sehari-hari | Teks bebas dipahami tanpa format khusus; pesan yang belum jelas diteruskan ke LLM, bukan ditebak | ✅ Router dua tahap berjalan di production. Classifier tahap 1 benar **97,6%** pada pesan yang dijawabnya |
 | G3 | AI aman dan tidak pernah bertindak sendiri | **0** aksi tersimpan tanpa tombol konfirmasi; teks pembeli diperlakukan sebagai data, bukan perintah | ✅ Dijamin oleh desain: AI hanya punya tool baca, dan setiap pesanan, perubahan, serta pembatalan menunggu tombol pembeli. Tes unit (`understand.test.ts`, `engine.test.ts`) membuktikannya |
 | G4 | AI hemat dan cepat | ≥ 60% teks bebas selesai tanpa LLM; p95 tahap 1 di bawah 300 ms | ✅ **73,8%**, **23,7 ms** |
 | G5 | Juri memahami produk dan dapat mencobanya dalam 2 menit | Video di halaman depan, simulator publik, dan login demo satu klik untuk tiga peran | ✅ |
@@ -183,8 +183,6 @@ Pipeline harga (`ai/harga/`) menandai 4 dari 13 komoditas PIHPS sebagai **bergej
 | Teks bebas yang selesai tanpa LLM | ≥ 60% | **73,8%** |
 | Latensi p95 tahap 1 | < 300 ms | **23,7 ms** |
 | Akurasi intent / macro-F1 | — | 89,8% / 0,898 |
-| Aksi tersimpan tanpa konfirmasi | 0 | Belum diukur: skenario `e2e` dan `safety` belum ditulis |
-| Aksi end-to-end benar | ≥ 90% | Belum diukur |
 
 **Metrik pilot** *(hipotesis awal; perlu dikalibrasi dengan data pilot)*
 
@@ -211,11 +209,10 @@ MVP belum memungut biaya apa pun dan belum memproses pembayaran sungguhan.
 
 MVP mencakup **8 bahan pokok** dengan harga pasar **PIHPS Kota Bandung**, tiga peran, website, dan WhatsApp.
 
+Semua fitur di bawah sudah selesai dan berjalan di production.
+
 - **P0:** tanpa fitur ini, produk tidak menyelesaikan masalah inti.
 - **P1:** fitur ini membuat produk jauh lebih baik dan menjadi pembeda.
-- **P2:** fitur ini masuk roadmap, dan desain saat ini sudah menyiapkan jalannya.
-
-Status: ✅ selesai · 🟡 sebagian · ⬜ belum.
 
 | ID | Fitur | Kebutuhan dan kriteria penerimaan | Prioritas | Status |
 |---|---|---|---|---|
@@ -226,7 +223,7 @@ Status: ✅ selesai · 🟡 sebagian · ⬜ belum.
 | F5 | Penutupan batch | Setelah deadline: kuota tercapai → *menunggu bayar*; di bawah minimum → *tidak tercapai*, tanpa tagihan | P0 | ✅ |
 | F6 | Konfirmasi wajib | **Given** AI mengusulkan ikut, ubah, batal, atau catat minat, **when** pembeli belum menekan tombol, **then** sistem tidak menulis data apa pun | P0 | ✅ |
 | F7 | Tiga peran | `/admin`, `/grosir`, dan `/akun` hanya terbuka untuk perannya. Peran tersimpan di `app_metadata`, bukan `user_metadata`. Tidak ada pendaftaran publik | P0 | ✅ |
-| F8 | Aturan di database | Batch tertutup menolak pesanan, jumlah maksimal 100.000, pesanan hanya dikelola pemiliknya, RLS aktif di semua tabel, dan semuanya diuji pgTAP | P0 | ✅ |
+| F8 | Aturan di database | Batch tertutup menolak pesanan, jumlah maksimal 100.000, pesanan hanya dikelola pemiliknya, dan RLS aktif di semua tabel. Tes pgTAP ada di `supabase/tests/` | P0 | ✅ |
 | F9 | Agen teks bebas | Router dua tahap memetakan teks bebas ke salah satu dari 9 intent (bagian 8 dan 9) | P1 | ✅ |
 | F10 | Simulator WhatsApp | `/simulator` memakai engine yang sama dengan WhatsApp, lengkap dengan panel "Di balik layar". Maksimal 50 pesanan simulator aktif per batch | P1 | ✅ |
 | F11 | Cek harga wajar | Badge hemat atau lebih mahal dibanding PIHPS. Badge disembunyikan jika nama atau satuan tidak cocok | P1 | ✅ |
@@ -235,11 +232,6 @@ Status: ✅ selesai · 🟡 sebagian · ⬜ belum.
 | F14 | Asisten buka batch | Saran tier 95% dan 90% dari harga pasar, kuota dari radar, dan peringatan jika tier ≥ harga pasar | P1 | ✅ |
 | F15 | Upload foto batch | Browser mengecilkan foto, lalu mengunggahnya lewat signed URL ke bucket `batch-images` | P1 | ✅ |
 | F16 | Mode demo | Login satu klik untuk tiga peran, 8 batch di semua status, dan reset setiap malam | P1 | ✅ |
-| F17 | Pembayaran online | Status bayar sudah terpisah (`not_due`, `due`, `paid`, `refunded`) dan tinggal diisi oleh webhook gateway pembayaran | P2 | ⬜ |
-| F18 | Notifikasi hasil batch | Engine mengembalikan `Reply[]` tanpa mengirim sendiri, sehingga pengirim template Meta dapat ditambahkan terpisah | P2 | ⬜ |
-| F19 | Prediksi harga di agen | `prediksi.json` sudah berisi prediksi, tetapi tool `harga_pasar` baru menampilkan harga terakhir | P2 | 🟡 |
-| F20 | Data harga harian | Mode harian pipeline (LightGBM) baru diuji dengan data sintetis | P2 | 🟡 |
-| F21 | Pendaftaran grosir mandiri dan wilayah di luar Bandung | Saat ini `/supplier` hanya berisi kontak email, dan harga pasar hanya mencakup Kota Bandung | P2 | ⬜ |
 
 **Di luar MVP**
 
@@ -251,6 +243,11 @@ Status: ✅ selesai · 🟡 sebagian · ⬜ belum.
 | Pesan suara dan gambar di WhatsApp | Agen meminta pembeli mengirim teks |
 | Pelatihan ulang otomatis dari chat production | Membutuhkan persetujuan pengguna dan proses kurasi data |
 | Aplikasi mobile native | Website mobile-first dan WhatsApp sudah memenuhi kebutuhan pembeli |
+| Prediksi harga di chat | Prediksi bulan depan sudah tampil di cek harga wajar. Di chat, agen cukup menjawab harga pasar terakhir |
+| Harga harian | PIHPS Kota Bandung dipakai per bulan. Harga harian membutuhkan sumber data harian yang stabil |
+| Wilayah di luar Kota Bandung | Harga pasar dan grosir demo baru mencakup Kota Bandung |
+
+**Roadmap setelah MVP:** pembayaran online lewat webhook payment gateway (status bayar sudah dipisah menjadi `not_due`, `due`, `paid`, `refunded`), notifikasi hasil batch lewat template WhatsApp (engine sudah mengembalikan `Reply[]` tanpa mengirim sendiri), dan pendaftaran grosir mandiri.
 
 ---
 

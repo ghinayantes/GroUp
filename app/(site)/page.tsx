@@ -2,7 +2,6 @@ import Link from "next/link";
 import DemoSignIn from "@/components/auth/DemoSignIn";
 import DemoPipeline from "@/components/showcase/DemoPipeline";
 import HeroMedia from "@/components/showcase/HeroMedia";
-import MetricsStrip from "@/components/showcase/MetricsStrip";
 import BatchGrid, { JoinButton } from "@/components/site/BatchGrid";
 import ChatSimulator from "@/components/site/ChatSimulator";
 import Countdown from "@/components/site/Countdown";
@@ -12,7 +11,6 @@ import { FairPriceBadge } from "@/components/trust/FairPrice";
 import { daysLeft, formatQuantity, percentOf, photo, rupiah, summarizeCategories, type Batch } from "@/lib/batch";
 import { listOpenBatches } from "@/lib/orders";
 import { marketGap } from "@/lib/showcase";
-import { loadEvalHighlights } from "@/lib/showcase-data";
 import { hasSupabaseSecret } from "@/lib/supabase/server";
 import type { RadarEntry } from "@/lib/trust/demand-radar";
 import { loadDemandRadar } from "@/lib/trust/demand-radar-data";
@@ -36,7 +34,6 @@ export default async function Home() {
   const closingSoon = [...batches].sort((a, b) => a.closesAt.localeCompare(b.closesAt))[0];
   const gap = marketGap(batches);
   const topSignal: RadarEntry | undefined = hasSupabaseSecret() ? (await loadDemandRadar().catch(() => []))[0] : undefined;
-  const highlights = loadEvalHighlights();
 
   return <main>
     <section className="hero">
@@ -111,8 +108,6 @@ export default async function Home() {
       <p className="section-note">Simulator memakai agen yang sama dengan nomor WhatsApp GroUp. Panel &ldquo;Di balik layar&rdquo; menunjukkan jalur yang dipakai, alasannya, dan guard yang aktif.</p>
       <ChatSimulator suggestions={SIMULATOR_SUGGESTIONS} traceOpen />
     </section>
-
-    <MetricsStrip highlights={highlights} />
 
     <section className="trust-strip section">
       <div><Icon name="shield" /><span><b>Supplier diverifikasi manual</b><small>Status dan riwayat batch ditampilkan</small></span></div>

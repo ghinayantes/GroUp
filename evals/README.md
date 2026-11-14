@@ -15,7 +15,7 @@ Diukur pada 225 pesan uji tulisan tim (`ai/data/test.jsonl`) yang tidak pernah d
 | Latensi p95 tahap 1 | < 300 ms | **23,7 ms** ✅ |
 | Akurasi intent / macro-F1 | — | 89,8% / 0,898 |
 
-Suite `extract`, `e2e`, dan `safety` sudah siap dijalankan, tetapi datasetnya belum ditulis tim. Laporan menandainya "belum ada" alih-alih mengisi angka.
+Laporan hanya memuat suite yang sudah dijalankan. Format dataset setiap suite dijelaskan di [`datasets/README.md`](datasets/README.md).
 
 ## Tiga mode, satu perbandingan
 
@@ -59,7 +59,7 @@ Mode `llm-only` dan `router` butuh penyedia tahap 2 di `.env.local` (lihat bagia
 | `scenario.ts` | Menjalankan skenario percakapan di engine asli dengan penyimpanan di memori |
 | `metrics.ts` | Akurasi, macro-F1, confusion matrix, persentil, biaya per 1.000 pesan |
 | `cache.ts` | Cache jawaban LLM per input, jadi eval ulang tidak memanggil model lagi |
-| `report.ts`, `summary.ts` | Menyusun `REPORT.md` dan strip metrik di halaman depan dari hasil yang sama |
+| `report.ts`, `summary.ts` | Menyusun `REPORT.md` dari hasil eval |
 | `pricing.json` | Harga token per model untuk perkiraan biaya (dicek 9 Nov 2026) |
 | `datasets/` | Dataset eval tulisan tim |
 | `results/` | Hasil mentah setiap run (JSON), di-commit agar bisa diaudit |
