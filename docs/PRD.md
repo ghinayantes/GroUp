@@ -106,9 +106,9 @@ Pipeline harga (`ai/harga/`) menandai 4 dari 13 komoditas PIHPS sebagai **bergej
 ### 3.4 Perlu dicek dan bukti lapangan
 
 - [ ] Cantumkan publikasi BPS sumber angka margin perdagangan dan pengangkutan di slide.
-- [ ] Wawancara 1–2 pemilik warung: belanja bahan per minggu, cara memesan, dan reaksi saat harga naik.
-- [ ] Wawancara 1 grosir: minimum order, cara menentukan harga, dan kesediaan membuka batch.
-- [ ] Ambil 2–3 kutipan terkuat untuk halaman depan dan slide.
+- [x] Wawancara 1–2 petani atau pengurus koperasi: harga jual ke pengepul, pernah ijon atau tidak, kapan harga paling anjlok.
+- [x] Wawancara 1–2 pemilik warung atau katering: belanja cabai per minggu, pernah kehabisan atau tidak, reaksi saat harga naik.
+- [x] Ambil 2–3 kutipan terkuat untuk halaman depan, README, dan slide.
 
 ---
 
