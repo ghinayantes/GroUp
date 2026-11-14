@@ -84,8 +84,12 @@ describe("directAction", () => {
     expect(route(intent, "cabe 5 kilo")).toBeNull();
   });
 
-  it.each(["di_luar_topik", "sapaan"] as const)("%s → menu", (intent) => {
-    expect(route(intent, "halo")).toEqual({ type: "menu" });
+  it("sapaan → menu dengan salam", () => {
+    expect(route("sapaan", "halo")).toEqual({ type: "menu", reason: "greeting" });
+  });
+
+  it("di_luar_topik → menu dengan penolakan sopan", () => {
+    expect(route("di_luar_topik", "bikinin puisi dong")).toEqual({ type: "menu", reason: "off_topic" });
   });
 });
 

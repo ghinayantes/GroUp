@@ -21,8 +21,9 @@ export function directAction(intent: Intent, slots: ExtractedSlots): ProposedAct
     case "cek_pesanan":
       return { type: "list_orders" };
     case "sapaan":
+      return { type: "menu", reason: "greeting" };
     case "di_luar_topik":
-      return { type: "menu" };
+      return { type: "menu", reason: "off_topic" };
     case "tanya_info":
     case "tanya_harga_pasar":
     case "catat_minat":

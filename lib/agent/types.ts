@@ -40,7 +40,7 @@ export type ProposedAction =
   | { type: "list_orders" }
   | { type: "confirm_interest"; material: string; quantity: number | null; unit: string | null; frequency: Frequency | null }
   | { type: "answer"; text: string }
-  | { type: "menu" };
+  | { type: "menu"; reason?: "greeting" | "off_topic" };
 
 export type SessionStage =
   | "choose_batch"
