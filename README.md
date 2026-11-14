@@ -23,12 +23,12 @@
 
 **Nama tim:** KitaMasihPemula
 
-| No | Nama | Peran |
-|---|---|---|
-| 1 | Ghina Emelia Yantes | Full Stack|
-| 2 | Muhammad Rafiif Ansyadya | AI/LLM |
-| 3 | Pelangi Putri Sanyoto | Finance |
-| 4 | Visakha Harumi Hendrawan | Product Manager |
+| No | Nama | Akun Github | Peran |
+|---|---|---|---|
+| 1 | Ghina Emelia Yantes | [@ghinayantes](https://github.com/ghinayantes)| Full Stack |
+| 2 | Muhammad Rafiif Ansyadya | [@mobyy17](https://github.com/mobyy17) | AI/LLM |
+| 3 | Pelangi Putri Sanyoto | [@pelangips](https://github.com/pelangips) | Finance |
+| 4 | Visakha Harumi Hendrawan | [@vis0287](https://github.com/vis0287) | Product Manager |
 
 ## Tentang aplikasi
 
@@ -37,6 +37,7 @@
 | **Kategori** | Web |
 | **Nama aplikasi** | GroUp |
 | **Demo** | <https://gro-up-virid.vercel.app> |
+| **Link Demo** | <https://youtu.be/eF22tMxoxpE?si=qd1GHn3hhj5hUMLJ> |
 
 ### Masalah yang diangkat
 
