@@ -28,7 +28,7 @@ export function readEvalResults(dir = path.join(process.cwd(), RESULTS_DIR)): Ev
 
 export type ScenarioTotals = { violations: number; llmCalls: number; messages: number; freeText: number; stage1: number; input: number; output: number };
 
-/** Ringkasan yang sama untuk `npm run eval:report` dan strip metrik di halaman depan. */
+/** Ringkasan hasil eval untuk `npm run eval:report`. */
 export function summarizeEval(results: EvalResult[]) {
   const latest = (suite: string, mode: string) => results.filter((r) => r.suite === suite && r.mode === mode && r.status === "ok").at(-1);
   const scenarioTotals = (mode: string): ScenarioTotals | null => {

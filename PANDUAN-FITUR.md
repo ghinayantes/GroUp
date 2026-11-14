@@ -49,7 +49,7 @@ Buka `/masuk`, lalu klik **Coba sebagai Pembeli**, **Coba sebagai Grosir**, atau
 ## 1. Halaman publik (tanpa login)
 
 ### Beranda `/`
-**Isinya:** hero, perbandingan harga pasar vs patungan, tiga manfaat AI, simulator, strip metrik eval, tombol "Coba sebagai …", kategori, batch minggu ini, hitung mundur batch terdekat.
+**Isinya:** hero, perbandingan harga pasar vs patungan, tiga manfaat AI, simulator, tombol "Coba sebagai …", kategori, batch minggu ini, hitung mundur batch terdekat.
 
 **Cara tes:**
 1. Buka `/`.
