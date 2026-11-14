@@ -30,8 +30,6 @@ const nextConfig: NextConfig = {
     return [{ source: "/admin/login", destination: "/masuk?peran=admin", permanent: true }];
   },
   outputFileTracingIncludes: {
-    // Strip metrik di halaman depan membaca hasil eval dan data uji saat request.
-    "/": ["./evals/results/**", "./ai/data/test.jsonl"],
     "/api/whatsapp/webhook": intentClassifierFiles,
     "/api/simulator/message": intentClassifierFiles,
   },

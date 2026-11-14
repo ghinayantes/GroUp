@@ -23,7 +23,7 @@ const PROVIDER_INFO: Record<Provider, { name: string; retention: React.ReactNode
 
 const stages = [
   { icon: "chat" as const, title: "Perintah baku, tanpa AI", body: "MULAI, PESANAN, UBAH, BATAL, dan semua tombol diproses langsung oleh sistem. Tidak ada data yang dikirim ke penyedia model." },
-  { icon: "shield" as const, title: "Tahap 1: classifier lokal", body: "Pesan pendek yang jelas dikenali oleh model kecil yang berjalan di server GroUp sendiri, tanpa mengirim data keluar. Model ini masih dilatih; sampai siap, teks bebas langsung ke tahap 2." },
+  { icon: "shield" as const, title: "Tahap 1: classifier lokal", body: "Pesan yang jelas dikenali oleh model kecil buatan tim yang berjalan di server GroUp sendiri, tanpa mengirim data keluar. Pesan yang belum jelas diteruskan ke tahap 2." },
   { icon: "search" as const, title: "Tahap 2: model bahasa", body: "Pesan yang rumit atau ambigu dikirim ke penyedia model bahasa. Model hanya boleh membaca data batch, pesananmu sendiri, dan harga pasar. Model tidak bisa menulis data." },
   { icon: "check" as const, title: "Konfirmasi dengan tombol", body: "Usulan AI untuk ikut batch, mengubah, membatalkan, atau mencatat minat selalu muncul sebagai tombol. Tidak ada yang tersimpan sebelum kamu menekan tombol konfirmasi." },
 ];
@@ -101,8 +101,8 @@ export default function AiTransparencyPage() {
     </section>
 
     <section className="section">
-      <div className="section-head"><div><span className="eyebrow">Evaluasi</span><h2>Bagaimana kami mengukurnya</h2></div></div>
-      <p>Agen diuji dengan pesan tulisan manusia dalam tiga mode: hanya perintah baku, hanya model bahasa, dan router dua tahap. Targetnya: tidak ada aksi tercatat tanpa konfirmasi, minimal 90% aksi benar, presisi tahap 1 minimal 97%, dan semua jawaban berangka sesuai data. Hasil evaluasi ditampilkan di sini setelah pengujian selesai.</p>
+      <div className="section-head"><div><span className="eyebrow">Evaluasi</span><h2>Bagaimana kami mengujinya</h2></div></div>
+      <p>Agen diuji dengan pesan tulisan tim yang tidak pernah dipakai untuk melatih model. Apa pun jawaban AI, pesanan baru tersimpan setelah kamu menekan tombol konfirmasi.</p>
     </section>
 
     <section className="section">
