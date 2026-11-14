@@ -24,7 +24,7 @@ next-env.d.ts
 *.pem
 npm-debug.log*
 /sessions
-/docs
+docs/rancangan
 /.claude
 # demo seed LLM cache
 /evals/cache/demo-seed
