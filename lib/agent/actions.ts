@@ -13,8 +13,10 @@ import {
   confirmChangeReply,
   confirmInterestReply,
   confirmJoinReply,
+  greetingReply,
   interestRecordedText,
   menuText,
+  offTopicReply,
   orderCancelledText,
   orderChangedText,
   orderCreatedText,
@@ -108,6 +110,8 @@ export async function presentAction(action: ProposedAction, ctx: ActionContext):
     case "answer":
       return [text(action.text, true)];
     case "menu":
+      if (action.reason === "greeting") return [greetingReply()];
+      if (action.reason === "off_topic") return [offTopicReply()];
       return menu();
   }
 }

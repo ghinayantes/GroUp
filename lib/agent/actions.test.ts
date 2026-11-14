@@ -166,6 +166,18 @@ describe("presentAction", () => {
     const { deps } = setup();
     expect(await presentAction({ type: "menu" }, await contextFor(deps))).toEqual([{ kind: "text", body: menuText(), aiGenerated: false }]);
   });
+
+  it("menu karena sapaan dibuka dengan salam", async () => {
+    const { deps } = setup();
+    expect(await presentAction({ type: "menu", reason: "greeting" }, await contextFor(deps))).toEqual([{ kind: "text", body: `Halo! 👋 ${menuText()}`, aiGenerated: false }]);
+  });
+
+  it("menu karena di luar topik menolak dengan sopan", async () => {
+    const { deps } = setup();
+    const [reply] = await presentAction({ type: "menu", reason: "off_topic" }, await contextFor(deps));
+    expect(reply).toMatchObject({ kind: "text", aiGenerated: false });
+    expect(reply.kind === "text" && reply.body).toContain("cuma bisa bantu soal patungan GroUp");
+  });
 });
 
 describe("executeConfirmation", () => {
